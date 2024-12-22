@@ -58,6 +58,19 @@ namespace MapGenerationProject.DOTS
             return new HexCoordinates(x - z / 2, z);
         }
         
+        public readonly HexCoordinates Step(HexDirection direction)
+        {
+            return direction switch 
+            {
+                HexDirection.NE => new HexCoordinates(X, Z + 1),
+                HexDirection.E => new HexCoordinates(X + 1, Z),
+                HexDirection.SE => new HexCoordinates(X + 1, Z - 1),
+                HexDirection.SW => new HexCoordinates(X, Z - 1),
+                HexDirection.W => new HexCoordinates(X - 1, Z),
+                _ => new HexCoordinates(X - 1, Z + 1),
+            };
+        }
+
         public override string ToString() 
         {
             return "(" + X + ", " + Y + ", " + Z + ")";

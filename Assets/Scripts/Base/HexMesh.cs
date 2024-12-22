@@ -81,16 +81,6 @@ namespace MapGenerationProject.Base
             }
         }
         
-        // private void Triangulate(HexCell cell) 
-        // {
-        //     Vector3 center = cell.transform.localPosition;
-        //     for (int i = 0; i < 6; i++)
-        //     {
-        //         AddTriangle(center, center + HexMetrics.Corners[i], center + HexMetrics.Corners[i + 1]);
-        //         AddTriangleColor(cell.color);
-        //     }
-        // }
-        
         private void AddTriangle(Vector3 v1, Vector3 v2, Vector3 v3)
         {
             int vertexIndex = vertices.Count;

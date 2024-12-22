@@ -772,8 +772,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01217c1abf7e432ab23466481c0510b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Width: 22
-  Height: 22
+  _width: 10
+  _height: 10
   _onGridCreated: {fileID: 11400000, guid: f7888e574e824ad4d9a9f338cbcbe512, type: 2}
   _onMeshCreated: {fileID: 11400000, guid: 6cfa9f7ee4a040e44839094d363180f4, type: 2}
 --- !u!224 &297269449693277615

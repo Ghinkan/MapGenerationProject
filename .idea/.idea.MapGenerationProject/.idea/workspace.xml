@@ -4,11 +4,25 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8ca4c1a5-bc4d-456f-ab5a-b9057dd8cf83" name="Changes" comment="" />
+    <list default="true" id="8ca4c1a5-bc4d-456f-ab5a-b9057dd8cf83" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexDirection.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexDirection.cs.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.MapGenerationProject/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MapGenerationProject/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scenes/MapGenerationJobs.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/MapGenerationJobs.unity" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Base/HexMesh.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Base/HexMesh.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexCellData.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexCellData.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexCoordinates.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexCoordinates.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexGrid.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexGrid.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexMesh.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexMesh.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexMetrics.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexMetrics.cs" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectColorInfo"><![CDATA[{
   "customColor": "",
@@ -23,6 +37,7 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "com.codeium.enabled": "true",
+    "git-widget-placeholder": "main",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -77,7 +92,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1734876541269</updated>
-      <workItem from="1734876543809" duration="15415000" />
+      <workItem from="1734876543809" duration="27295000" />
     </task>
     <servers />
   </component>
