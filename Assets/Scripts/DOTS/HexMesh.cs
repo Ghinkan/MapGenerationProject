@@ -12,17 +12,9 @@ namespace MapGenerationProject.DOTS
         private Mesh _hexMesh;
         private MeshCollider _meshCollider;
 
-        private NativeArray<Vector3> _centerVertices;
-        private NativeArray<int> _centerTriangles;
-        private NativeArray<Color> _centerColors;
-        
-        private NativeArray<Vector3> _connectionVertices;
-        private NativeArray<int> _connectionTriangles;
-        private NativeArray<Color> _connectionColors;
-        
-        NativeArray<Vector3> _totalVertices;
-        NativeArray<int> _totalTriangles;
-        NativeArray<Color> _totalColors;
+        private NativeArray<Vector3> _vertices;
+        private NativeArray<int> _triangles;
+        private NativeArray<Color> _colors;
 
         private void Awake()
         {
@@ -46,56 +38,42 @@ namespace MapGenerationProject.DOTS
             _hexMesh.Clear();
             
             int centerHexCount = cells.Length * 18;
-            _centerVertices = new NativeArray<Vector3>(centerHexCount, Allocator.Persistent);
-            _centerTriangles = new NativeArray<int>(centerHexCount, Allocator.Persistent);
-            _centerColors = new NativeArray<Color>(centerHexCount, Allocator.Persistent);
-            GenerateCenterHexMeshJob generateCenterHexMeshJob = new GenerateCenterHexMeshJob 
-            {
-                Cells = cells,
-                Vertices = _centerVertices,
-                Triangles = _centerTriangles,
-                Colors = _centerColors,
-            };
-            JobHandle generateCenterHandle = generateCenterHexMeshJob.Schedule(cells.Length, 64);
-            
             int connectionVerticesCount = cells.Length * 6 * 4;
             int connectionTrianglesCount = cells.Length * 6 * 6;
-            _connectionVertices = new NativeArray<Vector3>(connectionVerticesCount, Allocator.Persistent);
-            _connectionTriangles = new NativeArray<int>(connectionTrianglesCount, Allocator.Persistent);
-            _connectionColors = new NativeArray<Color>(connectionVerticesCount, Allocator.Persistent);
-            GenerateConnectionHexMeshJob generateConnectionHexMeshJob = new GenerateConnectionHexMeshJob 
+            
+            int totalVerticesCount = centerHexCount + connectionVerticesCount;
+            int totalTrianglesCount = centerHexCount + connectionTrianglesCount;
+            int totalColorsCount = centerHexCount + connectionVerticesCount;
+
+            _vertices = new NativeArray<Vector3>(totalVerticesCount, Allocator.Persistent);
+            _triangles = new NativeArray<int>(totalTrianglesCount, Allocator.Persistent);
+            _colors = new NativeArray<Color>(totalColorsCount, Allocator.Persistent);
+
+            GenerateCenterHexMeshJob generateCenterHexMeshJob = new GenerateCenterHexMeshJob
             {
                 Cells = cells,
-                Vertices = _connectionVertices,
-                Triangles = _connectionTriangles,
-                Colors = _connectionColors,
+                Vertices = _vertices.GetSubArray(0, centerHexCount),
+                Triangles = _triangles.GetSubArray(0, centerHexCount),
+                Colors = _colors.GetSubArray(0, centerHexCount),
+            };
+
+            GenerateConnectionHexMeshJob generateConnectionHexMeshJob = new GenerateConnectionHexMeshJob
+            {
+                Cells = cells,
+                Vertices = _vertices.GetSubArray(centerHexCount, connectionVerticesCount),
+                Triangles = _triangles.GetSubArray(centerHexCount, connectionTrianglesCount),
+                Colors = _colors.GetSubArray(centerHexCount, connectionVerticesCount),
                 BaseTriangleOffset = centerHexCount,
             };
-            JobHandle generateConnectionHandle = generateConnectionHexMeshJob.Schedule(cells.Length, 64);
+
+            JobHandle generateCenterHandle = generateCenterHexMeshJob.Schedule(cells.Length, 64);
+            JobHandle generateConnectionHandle = generateConnectionHexMeshJob.Schedule(cells.Length, 64, generateCenterHandle);
             JobHandle combinedHandle = JobHandle.CombineDependencies(generateCenterHandle, generateConnectionHandle);
             combinedHandle.Complete();
-            
-            // Ajustar índices de triángulos de las conexiones
-            for (int i = 0; i < _connectionTriangles.Length; i++)
-            {
-                _connectionTriangles[i] += _centerVertices.Length;
-            }
-            
-            _totalVertices = new NativeArray<Vector3>(_centerVertices.Length + _connectionVertices.Length, Allocator.Persistent);
-            NativeArray<Vector3>.Copy(_centerVertices, 0, _totalVertices, 0, _centerVertices.Length);
-            NativeArray<Vector3>.Copy(_connectionVertices, 0, _totalVertices, _centerVertices.Length, _connectionVertices.Length);
-            
-            _totalTriangles = new NativeArray<int>(_centerTriangles.Length + _connectionTriangles.Length, Allocator.Persistent);
-            NativeArray<int>.Copy(_centerTriangles, 0, _totalTriangles, 0, _centerTriangles.Length);
-            NativeArray<int>.Copy(_connectionTriangles, 0, _totalTriangles, _centerTriangles.Length, _connectionTriangles.Length);
-            
-            _totalColors = new NativeArray<Color>(_centerColors.Length + _connectionColors.Length, Allocator.Persistent);
-            NativeArray<Color>.Copy(_centerColors, 0, _totalColors, 0, _centerColors.Length);
-            NativeArray<Color>.Copy(_connectionColors, 0, _totalColors, _centerColors.Length, _connectionColors.Length);
 
-            _hexMesh.SetVertices(_totalVertices);
-            _hexMesh.SetTriangles(_totalTriangles.ToArray(), 0);
-            _hexMesh.SetColors(_totalColors);
+            _hexMesh.SetVertices(_vertices);
+            _hexMesh.SetTriangles(_triangles.ToArray(), 0);
+            _hexMesh.SetColors(_colors);
             _hexMesh.RecalculateNormals();
             
             _meshCollider.sharedMesh = _hexMesh;
@@ -105,17 +83,9 @@ namespace MapGenerationProject.DOTS
 
         private void DisposeBuffers()
         {
-            _centerVertices.Dispose();
-            _centerTriangles.Dispose();
-            _centerColors.Dispose();
-
-            _connectionVertices.Dispose();
-            _connectionTriangles.Dispose();
-            _connectionColors.Dispose();
-            
-            _totalVertices.Dispose();
-            _totalTriangles.Dispose();
-            _totalColors.Dispose();
+            _vertices.Dispose();
+            _triangles.Dispose();
+            _colors.Dispose();
         }
 
         [BurstCompile]
@@ -198,19 +168,12 @@ namespace MapGenerationProject.DOTS
                     Colors[baseVertexIndex + 2] = neighborColor;
                     Colors[baseVertexIndex + 3] = neighborColor;
                     
-                    Triangles[baseTrianglesIndex] = baseVertexIndex;
-                    Triangles[baseTrianglesIndex + 1] = baseVertexIndex + 2;
-                    Triangles[baseTrianglesIndex + 2] = baseVertexIndex + 1;
-                    Triangles[baseTrianglesIndex + 3] = baseVertexIndex + 1;
-                    Triangles[baseTrianglesIndex + 4] = baseVertexIndex + 2;
-                    Triangles[baseTrianglesIndex + 5] = baseVertexIndex + 3;
-                    
-                    // Triangles[baseTrianglesIndex] = BaseTriangleOffset + baseVertexIndex;
-                    // Triangles[baseTrianglesIndex + 1] = BaseTriangleOffset + baseVertexIndex + 2;
-                    // Triangles[baseTrianglesIndex + 2] = BaseTriangleOffset + baseVertexIndex + 1;
-                    // Triangles[baseTrianglesIndex + 3] = BaseTriangleOffset + baseVertexIndex + 1;
-                    // Triangles[baseTrianglesIndex + 4] = BaseTriangleOffset + baseVertexIndex + 2;
-                    // Triangles[baseTrianglesIndex + 5] = BaseTriangleOffset + baseVertexIndex + 3;
+                    Triangles[baseTrianglesIndex] = BaseTriangleOffset + baseVertexIndex;
+                    Triangles[baseTrianglesIndex + 1] = BaseTriangleOffset + baseVertexIndex + 2;
+                    Triangles[baseTrianglesIndex + 2] = BaseTriangleOffset + baseVertexIndex + 1;
+                    Triangles[baseTrianglesIndex + 3] = BaseTriangleOffset + baseVertexIndex + 1;
+                    Triangles[baseTrianglesIndex + 4] = BaseTriangleOffset + baseVertexIndex + 2;
+                    Triangles[baseTrianglesIndex + 5] = BaseTriangleOffset + baseVertexIndex + 3;
 
 
                     baseVertexIndex += 4;
@@ -227,16 +190,11 @@ namespace MapGenerationProject.DOTS
                         Colors[baseVertexIndex] = cell.Color;
                         Colors[baseVertexIndex + 1] = neighbor.Color;
                         Colors[baseVertexIndex + 2] = nextNeighbor.Color;
-                    
-                        Triangles[baseTrianglesIndex] = baseVertexIndex;
-                        Triangles[baseTrianglesIndex + 1] = baseVertexIndex + 1;
-                        Triangles[baseTrianglesIndex + 2] = baseVertexIndex + 2;
                         
-                        // Triangles[baseTrianglesIndex] = BaseTriangleOffset + baseVertexIndex;
-                        // Triangles[baseTrianglesIndex + 1] = BaseTriangleOffset + baseVertexIndex + 1;
-                        // Triangles[baseTrianglesIndex + 2] = BaseTriangleOffset + baseVertexIndex + 2;
-
-                    
+                        Triangles[baseTrianglesIndex] = BaseTriangleOffset + baseVertexIndex;
+                        Triangles[baseTrianglesIndex + 1] = BaseTriangleOffset + baseVertexIndex + 1;
+                        Triangles[baseTrianglesIndex + 2] = BaseTriangleOffset + baseVertexIndex + 2;
+                        
                         baseVertexIndex += 3;
                         baseTrianglesIndex += 3;
                     }
