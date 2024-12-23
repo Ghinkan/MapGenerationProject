@@ -59,13 +59,13 @@ namespace MapGenerationProject.DOTS
         {
             int z = coordinates.Z;
             int x = coordinates.X + z / 2;
-            if (z < 0 || z >= Height || x < 0 || x >= Width)
+            if (z < 0 || z >= 100 || x < 0 || x >= 100)
             {
                 cell = default(HexCellData);
                 return false;
             }
 
-            cell = cells[x + z * Width];
+            cell = cells[x + z * 100];
             return true;
         }
     }

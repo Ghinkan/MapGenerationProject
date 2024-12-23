@@ -69,6 +69,7 @@ namespace MapGenerationProject.DOTS
                 Vertices = _connectionVertices,
                 Triangles = _connectionTriangles,
                 Colors = _connectionColors,
+                BaseTriangleOffset = centerHexCount,
             };
             JobHandle generateConnectionHandle = generateConnectionHexMeshJob.Schedule(cells.Length, 64);
             JobHandle combinedHandle = JobHandle.CombineDependencies(generateCenterHandle, generateConnectionHandle);
@@ -165,6 +166,8 @@ namespace MapGenerationProject.DOTS
             [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<int> Triangles;
             [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<Color> Colors;
             
+            public int BaseTriangleOffset;
+            
             public void Execute(int index)
             {
                 HexCellData cell = Cells[index];
@@ -176,7 +179,6 @@ namespace MapGenerationProject.DOTS
                 for (HexDirection direction = HexDirection.NE; direction <= HexDirection.SE; direction++)
                 {
                     if (!HexMetrics.TryGetCell(Cells, cell.Coordinates.Step(direction), out HexCellData neighbor)) continue;
-                    // if (!TryGetCell(Cells, cell.Coordinates.Step(direction), out HexCellData neighbor)) continue;
                         
                     Vector3 v1 = center + HexMetrics.GetFirstSolidCorner(direction);
                     Vector3 v2 = center + HexMetrics.GetSecondSolidCorner(direction);
@@ -202,11 +204,19 @@ namespace MapGenerationProject.DOTS
                     Triangles[baseTrianglesIndex + 3] = baseVertexIndex + 1;
                     Triangles[baseTrianglesIndex + 4] = baseVertexIndex + 2;
                     Triangles[baseTrianglesIndex + 5] = baseVertexIndex + 3;
+                    
+                    // Triangles[baseTrianglesIndex] = BaseTriangleOffset + baseVertexIndex;
+                    // Triangles[baseTrianglesIndex + 1] = BaseTriangleOffset + baseVertexIndex + 2;
+                    // Triangles[baseTrianglesIndex + 2] = BaseTriangleOffset + baseVertexIndex + 1;
+                    // Triangles[baseTrianglesIndex + 3] = BaseTriangleOffset + baseVertexIndex + 1;
+                    // Triangles[baseTrianglesIndex + 4] = BaseTriangleOffset + baseVertexIndex + 2;
+                    // Triangles[baseTrianglesIndex + 5] = BaseTriangleOffset + baseVertexIndex + 3;
+
 
                     baseVertexIndex += 4;
                     baseTrianglesIndex += 6;
                     
-                    if (direction <= HexDirection.E && cell.TryGetNeighbor(Cells, direction.Next(), out HexCellData nextNeighbor))
+                    if (direction <= HexDirection.E && HexMetrics.TryGetCell(Cells, cell.Coordinates.Step(direction.Next()), out HexCellData nextNeighbor))
                     {
                         Vector3 v5 = v2 + HexMetrics.GetBridge(direction.Next());
                     
@@ -221,6 +231,11 @@ namespace MapGenerationProject.DOTS
                         Triangles[baseTrianglesIndex] = baseVertexIndex;
                         Triangles[baseTrianglesIndex + 1] = baseVertexIndex + 1;
                         Triangles[baseTrianglesIndex + 2] = baseVertexIndex + 2;
+                        
+                        // Triangles[baseTrianglesIndex] = BaseTriangleOffset + baseVertexIndex;
+                        // Triangles[baseTrianglesIndex + 1] = BaseTriangleOffset + baseVertexIndex + 1;
+                        // Triangles[baseTrianglesIndex + 2] = BaseTriangleOffset + baseVertexIndex + 2;
+
                     
                         baseVertexIndex += 3;
                         baseTrianglesIndex += 3;
