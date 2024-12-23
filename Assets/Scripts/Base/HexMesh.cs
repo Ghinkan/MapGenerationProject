@@ -61,7 +61,7 @@ namespace MapGenerationProject.Base
             }
         }
         
-        private void TriangulateConnection (HexDirection direction, HexCell cell, Vector3 v1, Vector3 v2)
+        private void TriangulateConnection(HexDirection direction, HexCell cell, Vector3 v1, Vector3 v2)
         {
             HexCell neighbor = cell.GetNeighbor(direction);
             if (!neighbor) return;
@@ -121,7 +121,8 @@ namespace MapGenerationProject.Base
             triangles.Add(vertexIndex + 3);
         }
         
-        private void AddQuadColor(Color c1, Color c2) {
+        private void AddQuadColor(Color c1, Color c2) 
+        {
             colors.Add(c1);
             colors.Add(c1);
             colors.Add(c2);
