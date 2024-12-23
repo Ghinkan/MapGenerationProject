@@ -6,9 +6,9 @@ namespace MapGenerationProject.DOTS
     [System.Serializable]
     public struct HexCoordinates
     {
-        public int X { get; private set; }
+        public readonly int X;
+        public readonly int Z;
         public readonly int Y { get { return -X - Z; } }
-        public int Z { get; private set; }
         
         [ShowInInspector, ReadOnly] public Vector3 CoordinateVector { get { return new Vector3(X, Y, Z); } }
         
@@ -70,7 +70,7 @@ namespace MapGenerationProject.DOTS
                 _ => new HexCoordinates(X - 1, Z + 1),
             };
         }
-
+        
         public override string ToString() 
         {
             return "(" + X + ", " + Y + ", " + Z + ")";
