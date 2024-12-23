@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using Unity.Burst;
+using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.EventChannels;
@@ -116,6 +117,7 @@ namespace MapGenerationProject.DOTS
             DisposeBuffers();
         }
 
+        [BurstCompile]
         private struct GenerateCenterHexMeshJob : IJobParallelFor
         {
             [ReadOnly] public NativeArray<HexCellData> Cells;
@@ -172,8 +174,7 @@ namespace MapGenerationProject.DOTS
                 
                 for (HexDirection direction = HexDirection.NE; direction <= HexDirection.SE; direction++)
                 {
-                    if (!cell.TryGetNeighbor(Cells, direction, out HexCellData neighbor)) return;
-                    Debug.Log("Neighbor: ");
+                    if (!cell.TryGetNeighbor(Cells, direction, out HexCellData neighbor)) continue;
                         
                     Vector3 v1 = center + HexMetrics.GetFirstSolidCorner(direction);
                     Vector3 v2 = center + HexMetrics.GetSecondSolidCorner(direction);
