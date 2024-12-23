@@ -52,7 +52,7 @@ namespace MapGenerationProject.DOTS
                 
                 _vertices = new NativeArray<Vector3>(vertexCount, Allocator.Persistent);
                 _triangles = new NativeArray<int>(vertexCount, Allocator.Persistent);
-                // _normals = new NativeArray<Vector3>(vertexCount, Allocator.Persistent);
+                _normals = new NativeArray<Vector3>(vertexCount, Allocator.Persistent);
                 _colors = new NativeArray<Color>(vertexCount, Allocator.Persistent);
             }
             
@@ -97,16 +97,16 @@ namespace MapGenerationProject.DOTS
         private struct GenerateHexMeshJob : IJobParallelFor
         {
             [ReadOnly] public NativeArray<HexCellData> Cells;
-
+        
             [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<Vector3> Vertices;
             [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<int> Triangles;
             [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<Color> Colors;
-
+        
             public void Execute(int index)
             {
                 HexCellData cell = Cells[index];
                 Vector3 center = cell.Position;
-
+        
                 for (int i = 0; i < 6; i++)
                 {
                     // Aquí agregamos los vértices y colores
@@ -115,23 +115,23 @@ namespace MapGenerationProject.DOTS
                         Vector3 v1 = center + HexMetrics.GetFirstSolidCorner(direction);
                         Vector3 v2 = center + HexMetrics.GetSecondSolidCorner(direction);
                         int baseVertexIndex = index * 6;
-
+        
                         // Añadir los vértices del triángulo
                         Vertices[baseVertexIndex] = center;
                         Vertices[baseVertexIndex + 1] = v1;
                         Vertices[baseVertexIndex + 2] = v2;
-
+        
                         // Añadir los triángulos (usamos un índice en la lista de vértices)
                         Triangles[baseVertexIndex] = baseVertexIndex;
                         Triangles[baseVertexIndex + 1] = baseVertexIndex + 1;
                         Triangles[baseVertexIndex + 2] = baseVertexIndex + 2;
-
+        
                         // Añadir colores
                         Color color = cell.Color;
                         Colors[baseVertexIndex] = color;
                         Colors[baseVertexIndex + 1] = color;
                         Colors[baseVertexIndex + 2] = color;
-
+        
                         // Conexiones con los vecinos
                         if (direction <= HexDirection.SE)
                         {
@@ -143,27 +143,26 @@ namespace MapGenerationProject.DOTS
             
             private void TriangulateConnection(HexDirection direction, HexCellData cell, Vector3 v1, Vector3 v2, int baseVertexIndex)
             {
-                // HexCellData neighbor = cell.GetNeighbor(direction);
-                if (!cell.TryGetNeighbor(direction, Cells, out HexCellData neighbor)) return;
-
+                if (!cell.TryGetNeighbor(Cells, direction, out HexCellData neighbor)) return;
+        
                 Vector3 bridge = HexMetrics.GetBridge(direction);
                 Vector3 v3 = v1 + bridge;
                 Vector3 v4 = v2 + bridge;
-
+        
                 int quadBaseIndex = baseVertexIndex + 3;
                 // Agregar los vértices y colores para el quad
                 Vertices[quadBaseIndex] = v1;
                 Vertices[quadBaseIndex + 1] = v2;
                 Vertices[quadBaseIndex + 2] = v3;
                 Vertices[quadBaseIndex + 3] = v4;
-
+        
                 Color cellColor = cell.Color;
                 Color neighborColor = neighbor.Color;
                 Colors[quadBaseIndex] = cellColor;
                 Colors[quadBaseIndex + 1] = cellColor;
                 Colors[quadBaseIndex + 2] = neighborColor;
                 Colors[quadBaseIndex + 3] = neighborColor;
-
+        
                 // Añadir los triángulos
                 Triangles[quadBaseIndex] = quadBaseIndex;
                 Triangles[quadBaseIndex + 1] = quadBaseIndex + 2;

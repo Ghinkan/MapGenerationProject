@@ -1,10 +1,14 @@
-﻿using UnityEngine;
+﻿using Unity.Collections;
+using UnityEngine;
 namespace MapGenerationProject.DOTS
 {
     public static class HexMetrics
     {
         public const float OuterRadius = 10f;
         public const float InnerRadius = OuterRadius * 0.866025404f;
+        
+        // public static readonly int Width;
+        // public static readonly int Height;
         
         public const float SolidFactor = 0.75f;
         public const float BlendFactor = 1f - SolidFactor;
@@ -20,6 +24,12 @@ namespace MapGenerationProject.DOTS
             new Vector3(0f, 0f, OuterRadius),
         };
         
+        // static HexMetrics()
+        // {
+        //     Width = HexGrid.Width;
+        //     Height = HexGrid.Height;
+        // }
+        
         public static Vector3 GetFirstSolidCorner(HexDirection direction) 
         {
             return Corners[(int)direction] * SolidFactor;
@@ -34,5 +44,30 @@ namespace MapGenerationProject.DOTS
         {
             return (Corners[(int)direction] + Corners[(int)direction + 1]) * BlendFactor;
         }
+        
+        public static HexCellData GetCell(NativeArray<HexCellData> cells, HexCoordinates coordinates)
+        {
+            int z = coordinates.Z;
+            int x = coordinates.X + z / 2;
+            if (z < 0 || z >= GridData.Height || x < 0 || x >= GridData.Width)
+                return default(HexCellData);
+
+            return cells[x + z * GridData.Width];
+        }
+        
+        public static bool TryGetCell(NativeArray<HexCellData> cells, HexCoordinates coordinates, out HexCellData cell)
+        {
+            int z = coordinates.Z;
+            int x = coordinates.X + z / 2;
+            if (z < 0 || z >= GridData.Height || x < 0 || x >= GridData.Width)
+            {
+                cell = default(HexCellData);
+                return false;
+            }
+
+            cell = cells[x + z * GridData.Width];
+            return true;
+        }
+        
     }
 }

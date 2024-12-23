@@ -10,12 +10,10 @@ namespace MapGenerationProject.DOTS
     {
         [SerializeField] private int _width = 6;
         [SerializeField] private int _height = 6;
-
-        private static int Width { get; set; }
-        private static int Height { get; set; }
-        
-        
         private static NativeArray<HexCellData> _cells;
+
+        public static int Width;
+        public static int Height;
         
         [SerializeField] private HexCellDataEventChannel _onGridCreated;
         [SerializeField] private HexCellDataEventChannel _onMeshCreated;
@@ -36,7 +34,6 @@ namespace MapGenerationProject.DOTS
             };
             JobHandle generateHexGridHandle = generateHexGridJob.Schedule(_cells.Length, 64);
             generateHexGridHandle.Complete();
-            
             _onGridCreated.RaiseEvent(_cells);
             _onMeshCreated.RaiseEvent(_cells);
         }
@@ -49,44 +46,6 @@ namespace MapGenerationProject.DOTS
             _cells[index] = cell;
             
             _onGridCreated.RaiseEvent(_cells);
-        }
-        
-        public static HexCellData GetCell(HexCoordinates coordinates)
-        {
-            int z = coordinates.Z;
-            int x = coordinates.X + z / 2;
-            if (z < 0 || z >= Height || x < 0 || x >= Width)
-                return default(HexCellData);
-
-            return _cells[x + z * Width];
-        }
-        
-        // public static bool TryGetCell(HexCoordinates coordinates, out HexCellData cell)
-        // {
-        //     int z = coordinates.Z;
-        //     int x = coordinates.X + z / 2;
-        //     if (z < 0 || z >= Height || x < 0 || x >= Width)
-        //     {
-        //         cell = default(HexCellData);
-        //         return false;
-        //     }
-        //     
-        //     cell = _cells[x + z * Width];
-        //     return true;
-        // }
-        
-        public static bool TryGetCell(HexCoordinates coordinates, NativeArray<HexCellData> cells, out HexCellData cell)
-        {
-            int z = coordinates.Z;
-            int x = coordinates.X + z / 2;
-            if (z < 0 || z >= 10 || x < 0 || x >= 10)
-            {
-                cell = default(HexCellData);
-                return false;
-            }
-
-            cell = cells[x + z * 10];
-            return true;
         }
         
         private void OnDestroy()

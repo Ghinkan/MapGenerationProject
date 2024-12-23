@@ -8,14 +8,14 @@ namespace MapGenerationProject.DOTS
         public HexCoordinates Coordinates;
         public Color Color;
         
-        public HexCellData GetNeighbor(HexDirection direction) 
+        public HexCellData GetNeighbor(NativeArray<HexCellData> cells, HexDirection direction) 
         { 
-            return HexGrid.GetCell(Coordinates.Step(direction));
+            return HexMetrics.GetCell(cells,Coordinates.Step(direction));
         }
         
-        public readonly bool TryGetNeighbor(HexDirection direction, NativeArray<HexCellData> cells, out HexCellData cell)
+        public readonly bool TryGetNeighbor(NativeArray<HexCellData> cells, HexDirection direction, out HexCellData cell)
         {
-            return HexGrid.TryGetCell(Coordinates.Step(direction), cells, out cell);
+            return HexMetrics.TryGetCell(cells, Coordinates.Step(direction), out cell);
         }
     }
 }

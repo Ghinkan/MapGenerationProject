@@ -120,14 +120,6 @@ namespace MapGenerationProject.Base
             triangles.Add(vertexIndex + 2);
             triangles.Add(vertexIndex + 3);
         }
-
-        private void AddQuadColor(Color c1, Color c2, Color c3, Color c4) 
-        {
-            colors.Add(c1);
-            colors.Add(c2);
-            colors.Add(c3);
-            colors.Add(c4);
-        }
         
         private void AddQuadColor(Color c1, Color c2) {
             colors.Add(c1);
