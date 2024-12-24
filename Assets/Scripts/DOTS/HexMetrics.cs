@@ -7,8 +7,8 @@ namespace MapGenerationProject.DOTS
         public const float OuterRadius = 10f;
         public const float InnerRadius = OuterRadius * 0.866025404f;
 
-        public const int Width = 20;
-        public const int Height = 20;
+        public const int Width = 5;
+        public const int Height = 5;
         
         public const float ElevationStep = 5f;
         public const int TerracesPerSlope = 2;
@@ -59,6 +59,17 @@ namespace MapGenerationProject.DOTS
         {
             float h = step * HorizontalTerraceStepSize;
             return Color.Lerp(a, b, h);
+        }
+        
+        public static HexEdgeType GetEdgeType(int elevation1, int elevation2) 
+        {
+            int delta = Mathf.Abs(elevation2 - elevation1);
+            return delta switch 
+            {
+                0 => HexEdgeType.Flat,
+                1 => HexEdgeType.Slope,
+                _ => HexEdgeType.Cliff,
+            };
         }
         
         public static int GetCellIndex(HexCoordinates coordinates)
