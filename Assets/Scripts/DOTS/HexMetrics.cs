@@ -7,8 +7,8 @@ namespace MapGenerationProject.DOTS
         public const float OuterRadius = 10f;
         public const float InnerRadius = OuterRadius * 0.866025404f;
 
-        public const int Width = 5;
-        public const int Height = 5;
+        public const int Width = 20;
+        public const int Height = 20;
         
         public const float ElevationStep = 5f;
         public const int TerracesPerSlope = 2;
