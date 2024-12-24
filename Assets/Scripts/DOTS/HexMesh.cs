@@ -3,11 +3,13 @@ using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.EventChannels;
+using UnityEngine.Serialization;
 namespace MapGenerationProject.DOTS
 {
     public class HexMesh : MonoBehaviour
     {
-        [SerializeField] private HexCellDataEventChannel _onGridCreated;
+        [SerializeField] private VoidEventChannel _onGridCreated;
+        [SerializeField] private VoidEventChannel _refreshMesh;
 
         private Mesh _hexMesh;
         private MeshCollider _meshCollider;
@@ -26,17 +28,20 @@ namespace MapGenerationProject.DOTS
         private void OnEnable()
         {
             _onGridCreated.GameEvent += Triangulate;
+            _refreshMesh.GameEvent += Triangulate;
         }
 
         private void OnDisable()
-        {
+        { 
             _onGridCreated.GameEvent -= Triangulate;
+            _refreshMesh.GameEvent -= Triangulate;
         }
 
-        private void Triangulate(NativeArray<HexCellData> cells)
+        private void Triangulate()
         {
             _hexMesh.Clear();
             
+            NativeArray<HexCellData> cells = HexGrid.Cells;
             int centerHexCount = cells.Length * 18;
             int connectionVerticesCount = cells.Length * 6 * 4;
             int connectionTrianglesCount = cells.Length * 6 * 6;
@@ -77,7 +82,6 @@ namespace MapGenerationProject.DOTS
             _hexMesh.RecalculateNormals();
             
             _meshCollider.sharedMesh = _hexMesh;
-
             DisposeBuffers();
         }
 

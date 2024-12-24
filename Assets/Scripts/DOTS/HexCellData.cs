@@ -6,5 +6,18 @@ namespace MapGenerationProject.DOTS
         public Vector3 Position;
         public HexCoordinates Coordinates;
         public Color Color;
+        private int _elevation;
+        public int Elevation
+        {
+            get 
+            {
+                return _elevation;
+            }
+            set 
+            {
+                _elevation = value;
+                Position.y = value * HexMetrics.ElevationStep;
+            }
+        }
     }
 }

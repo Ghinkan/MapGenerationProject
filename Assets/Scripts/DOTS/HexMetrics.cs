@@ -9,6 +9,8 @@ namespace MapGenerationProject.DOTS
 
         public const int Width = 20;
         public const int Height = 20;
+        
+        public const float ElevationStep = 5f;
 
         private const float SolidFactor = 0.75f;
         private const float BlendFactor = 1f - SolidFactor;
@@ -37,6 +39,30 @@ namespace MapGenerationProject.DOTS
         public static Vector3 GetBridge(HexDirection direction) 
         {
             return (Corners[(int)direction] + Corners[(int)direction + 1]) * BlendFactor;
+        }
+        
+        public static int GetCellIndex(HexCoordinates coordinates)
+        {
+            int z = coordinates.Z;
+            int x = coordinates.X + z / 2;
+            if (z < 0 || z >= Height || x < 0 || x >= Width)
+                return 0;
+
+            return x + z * Width;
+        }
+        
+        public static bool TryGetCellIndex(HexCoordinates coordinates, out int index)
+        {
+            int z = coordinates.Z;
+            int x = coordinates.X + z / 2;
+            if (z < 0 || z >= Height || x < 0 || x >= Width)
+            {
+                index = 0;
+                return false;
+            }
+
+            index = x + z * Width;
+            return true;
         }
         
         public static HexCellData GetCell(NativeArray<HexCellData> cells, HexCoordinates coordinates)

@@ -6,46 +6,35 @@ using UnityEngine;
 using UnityEngine.EventChannels;
 namespace MapGenerationProject.DOTS
 {
-    public class HexGrid : MonoBehaviour, IHexSelectable
+    public class HexGrid : MonoBehaviour
     {
-        private static NativeArray<HexCellData> _cells;
+        public static NativeArray<HexCellData> Cells;
         
-        [SerializeField] private HexCellDataEventChannel _onGridCreated;
-        [SerializeField] private HexCellDataEventChannel _onMeshCreated;
+        [SerializeField] private VoidEventChannel _onGridCreated;
         
         private void Start() 
         {
-            _cells = new NativeArray<HexCellData>(HexMetrics.Width * HexMetrics.Height, Allocator.Persistent);
+            Cells = new NativeArray<HexCellData>(HexMetrics.Width * HexMetrics.Height, Allocator.Persistent);
             GenerateHexGridJob generateHexGridJob = new GenerateHexGridJob
             {
-                Cells = _cells,
+                JobCells = Cells,
                 Width = HexMetrics.Width,
             };
-            JobHandle generateHexGridHandle = generateHexGridJob.Schedule(_cells.Length, 64);
+            JobHandle generateHexGridHandle = generateHexGridJob.Schedule(Cells.Length, 64);
             generateHexGridHandle.Complete();
-            _onGridCreated.RaiseEvent(_cells);
-            _onMeshCreated.RaiseEvent(_cells);
-        }
-
-        public void ColorCell(HexCoordinates coordinates, Color color)
-        {
-            int index = coordinates.X + coordinates.Z * HexMetrics.Width + coordinates.Z / 2;
-            HexCellData cell = _cells[index];
-            cell.Color = color;
-            _cells[index] = cell;
             
-            _onGridCreated.RaiseEvent(_cells);
+            _onGridCreated.RaiseEvent();
         }
         
         private void OnDestroy()
         {
-            _cells.Dispose();
+            Cells.Dispose();
         }
         
         [BurstCompile]
         private struct GenerateHexGridJob : IJobParallelFor
         {
-            [WriteOnly] public NativeArray<HexCellData> Cells;
+            [WriteOnly] public NativeArray<HexCellData> JobCells;
             public int Width;
 
             public void Execute(int index)
@@ -53,7 +42,7 @@ namespace MapGenerationProject.DOTS
                 int z = index / Width;
                 int x = index % Width;
 
-                Cells[index] = CreateCell(x, z);
+                JobCells[index] = CreateCell(x, z);
             }
         
             private static HexCellData CreateCell(int x, int z) 
@@ -68,6 +57,7 @@ namespace MapGenerationProject.DOTS
                     Coordinates = HexCoordinates.FromOffsetCoordinates(x, z),
                     Position = position,
                     Color = Color.white,
+                    Elevation = 0,
                 };
                 
                 return cell;
