@@ -7,6 +7,7 @@ namespace MapGenerationProject.Base
         public HexGrid hexGrid;
         public Color[] colors;
         private Color activeColor;
+        int activeElevation;
 
         private void Awake() 
         {
@@ -27,13 +28,25 @@ namespace MapGenerationProject.Base
             RaycastHit hit;
             if (Physics.Raycast(inputRay, out hit)) 
             {
-                hexGrid.ColorCell(hit.point, activeColor);
+                EditCell(hexGrid.GetCell(hit.point));
             }
         }
+        
+        public void EditCell(HexCell cell) 
+        {
+            cell.color = activeColor;
+            cell.Elevation = activeElevation;
+            hexGrid.Refresh();
+        }
 
-        public void SelectColor (int index) 
+        public void SelectColor(int index) 
         {
             activeColor = colors[index];
+        }
+        
+        public void SetElevation(float elevation) 
+        {
+            activeElevation = (int)elevation;
         }
     }
 }
