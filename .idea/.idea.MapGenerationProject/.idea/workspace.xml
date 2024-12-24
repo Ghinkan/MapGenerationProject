@@ -6,17 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="8ca4c1a5-bc4d-456f-ab5a-b9057dd8cf83" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MapGenerationProject/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MapGenerationProject/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scenes/MapGenerationJobs.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/MapGenerationJobs.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/ScriptableEvents/OnGridCreated.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/ScriptableEvents/OnGridCreated.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/ScriptableEvents/OnGridCreated.asset.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/ScriptableEvents/OnGridCreated.asset.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/ScriptableEvents/OnMeshCreated.asset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/ScriptableEvents/OnMeshCreated.asset.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexCellCanvas.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexCellCanvas.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexCellData.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexCellData.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexGrid.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexGrid.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexMesh.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexMesh.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexMetrics.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexMetrics.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexSelectionManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexSelectionManager.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -101,7 +92,7 @@
       <workItem from="1734876543809" duration="27295000" />
       <workItem from="1734952461333" duration="32452000" />
       <workItem from="1735038923025" duration="838000" />
-      <workItem from="1735042804228" duration="10177000" />
+      <workItem from="1735042804228" duration="12747000" />
     </task>
     <servers />
   </component>

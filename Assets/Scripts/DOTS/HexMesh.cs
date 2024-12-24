@@ -101,33 +101,38 @@ namespace MapGenerationProject.DOTS
             [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<int> Triangles;
             [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<Color> Colors;
 
+            private int _baseVertexIndex;
+
             public void Execute(int index)
             {
                 HexCellData cell = Cells[index];
                 Vector3 center = cell.Position;
                 
-                int baseVertexIndex = index * 18; // Cada celda tiene 6 triángulos = 18 vértices (6 direcciones x 3 vértices)
+                _baseVertexIndex = index * 18;
 
                 for (HexDirection direction = HexDirection.NE; direction <= HexDirection.NW; direction++)
                 {
                     Vector3 v1 = center + HexMetrics.GetFirstSolidCorner(direction);
                     Vector3 v2 = center + HexMetrics.GetSecondSolidCorner(direction);
-                    
-                    Vertices[baseVertexIndex] = center;
-                    Vertices[baseVertexIndex + 1] = v1;
-                    Vertices[baseVertexIndex + 2] = v2;
-
-                    Color color = cell.Color;
-                    Colors[baseVertexIndex] = color;
-                    Colors[baseVertexIndex + 1] = color;
-                    Colors[baseVertexIndex + 2] = color;
-                    
-                    Triangles[baseVertexIndex] = baseVertexIndex;
-                    Triangles[baseVertexIndex + 1] = baseVertexIndex + 1;
-                    Triangles[baseVertexIndex + 2] = baseVertexIndex + 2;
-
-                    baseVertexIndex += 3;
+                    AddTriangle(center, v1, v2, cell.Color);
                 }
+            }
+            
+            private void AddTriangle(Vector3 v1, Vector3 v2, Vector3 v3, Color cellColor)
+            {
+                Vertices[_baseVertexIndex] = v1;
+                Vertices[_baseVertexIndex + 1] = v2;
+                Vertices[_baseVertexIndex + 2] = v3;
+
+                Colors[_baseVertexIndex] = cellColor;
+                Colors[_baseVertexIndex + 1] = cellColor;
+                Colors[_baseVertexIndex + 2] = cellColor;
+                    
+                Triangles[_baseVertexIndex] = _baseVertexIndex;
+                Triangles[_baseVertexIndex + 1] = _baseVertexIndex + 1;
+                Triangles[_baseVertexIndex + 2] = _baseVertexIndex + 2;
+
+                _baseVertexIndex += 3;
             }
         }
         
@@ -135,20 +140,22 @@ namespace MapGenerationProject.DOTS
         private struct GenerateConnectionHexMeshJob : IJobParallelFor
         {
             [ReadOnly] public NativeArray<HexCellData> Cells;
+            [ReadOnly] public int BaseTriangleOffset;
             
             [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<Vector3> Vertices;
             [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<int> Triangles;
             [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<Color> Colors;
-            
-            public int BaseTriangleOffset;
+
+            private int _vertexIndex;
+            private int _trianglesIndex;
             
             public void Execute(int index)
             {
                 HexCellData cell = Cells[index];
                 Vector3 center = cell.Position;
                 
-                int baseVertexIndex = index * 6 * 4;
-                int baseTrianglesIndex = index * 6 * 6;
+                _vertexIndex = index * 6 * 4;
+                _trianglesIndex = index * 6 * 6;
                 
                 for (HexDirection direction = HexDirection.NE; direction <= HexDirection.SE; direction++)
                 {
@@ -160,49 +167,56 @@ namespace MapGenerationProject.DOTS
                     Vector3 v3 = v1 + bridge;
                     Vector3 v4 = v2 + bridge;
                     
-                    Vertices[baseVertexIndex] = v1;
-                    Vertices[baseVertexIndex + 1] = v2;
-                    Vertices[baseVertexIndex + 2] = v3;
-                    Vertices[baseVertexIndex + 3] = v4;
-                    
-                    Color cellColor = cell.Color;
-                    Color neighborColor = neighbor.Color;
-                    Colors[baseVertexIndex] = cellColor;
-                    Colors[baseVertexIndex + 1] = cellColor;
-                    Colors[baseVertexIndex + 2] = neighborColor;
-                    Colors[baseVertexIndex + 3] = neighborColor;
-                    
-                    Triangles[baseTrianglesIndex] = BaseTriangleOffset + baseVertexIndex;
-                    Triangles[baseTrianglesIndex + 1] = BaseTriangleOffset + baseVertexIndex + 2;
-                    Triangles[baseTrianglesIndex + 2] = BaseTriangleOffset + baseVertexIndex + 1;
-                    Triangles[baseTrianglesIndex + 3] = BaseTriangleOffset + baseVertexIndex + 1;
-                    Triangles[baseTrianglesIndex + 4] = BaseTriangleOffset + baseVertexIndex + 2;
-                    Triangles[baseTrianglesIndex + 5] = BaseTriangleOffset + baseVertexIndex + 3;
-
-
-                    baseVertexIndex += 4;
-                    baseTrianglesIndex += 6;
-                    
+                    AddQuad(v1, v2, v3, v4, cell.Color, neighbor.Color);
+   
                     if (direction <= HexDirection.E && HexMetrics.TryGetCell(Cells, cell.Coordinates.Step(direction.Next()), out HexCellData nextNeighbor))
                     {
                         Vector3 v5 = v2 + HexMetrics.GetBridge(direction.Next());
                     
-                        Vertices[baseVertexIndex] = v2;
-                        Vertices[baseVertexIndex + 1] = v4;
-                        Vertices[baseVertexIndex + 2] = v5;
-                    
-                        Colors[baseVertexIndex] = cell.Color;
-                        Colors[baseVertexIndex + 1] = neighbor.Color;
-                        Colors[baseVertexIndex + 2] = nextNeighbor.Color;
-                        
-                        Triangles[baseTrianglesIndex] = BaseTriangleOffset + baseVertexIndex;
-                        Triangles[baseTrianglesIndex + 1] = BaseTriangleOffset + baseVertexIndex + 1;
-                        Triangles[baseTrianglesIndex + 2] = BaseTriangleOffset + baseVertexIndex + 2;
-                        
-                        baseVertexIndex += 3;
-                        baseTrianglesIndex += 3;
+                        AddTriangle(v2, v4, v5, cell.Color, neighbor.Color, nextNeighbor.Color);
                     }
                 }
+            }
+
+            private void AddTriangle(Vector3 v1, Vector3 v2, Vector3 v3, Color cellColor, Color neighborColor, Color nextNeighbor)
+            {
+                Vertices[_vertexIndex] = v1;
+                Vertices[_vertexIndex + 1] = v2;
+                Vertices[_vertexIndex + 2] = v3;
+
+                Colors[_vertexIndex] = cellColor;
+                Colors[_vertexIndex + 1] = neighborColor;
+                Colors[_vertexIndex + 2] = nextNeighbor;
+                        
+                Triangles[_trianglesIndex] = BaseTriangleOffset + _vertexIndex;
+                Triangles[_trianglesIndex + 1] = BaseTriangleOffset + _vertexIndex + 1;
+                Triangles[_trianglesIndex + 2] = BaseTriangleOffset + _vertexIndex + 2;
+                        
+                _vertexIndex += 3;
+                _trianglesIndex += 3;
+            }
+            
+            private void AddQuad(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, Color cellColor, Color neighborColor) 
+            {
+                Vertices[_vertexIndex] = v1;
+                Vertices[_vertexIndex + 1] = v2;
+                Vertices[_vertexIndex + 2] = v3;
+                Vertices[_vertexIndex + 3] = v4;
+                
+                Colors[_vertexIndex] = cellColor;
+                Colors[_vertexIndex + 1] = cellColor;
+                Colors[_vertexIndex + 2] = neighborColor;
+                Colors[_vertexIndex + 3] = neighborColor;
+                    
+                Triangles[_trianglesIndex] = BaseTriangleOffset + _vertexIndex;
+                Triangles[_trianglesIndex + 1] = BaseTriangleOffset + _vertexIndex + 2;
+                Triangles[_trianglesIndex + 2] = BaseTriangleOffset + _vertexIndex + 1;
+                Triangles[_trianglesIndex + 3] = BaseTriangleOffset + _vertexIndex + 1;
+                Triangles[_trianglesIndex + 4] = BaseTriangleOffset + _vertexIndex + 2;
+                Triangles[_trianglesIndex + 5] = BaseTriangleOffset + _vertexIndex + 3;
+                
+                _vertexIndex += 4;
+                _trianglesIndex += 6;
             }
         }
     }
