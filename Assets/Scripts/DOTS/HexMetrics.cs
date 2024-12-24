@@ -6,14 +6,14 @@ namespace MapGenerationProject.DOTS
     {
         public const float OuterRadius = 10f;
         public const float InnerRadius = OuterRadius * 0.866025404f;
-        
-        public static readonly int Width;
-        public static readonly int Height;
-        
-        public const float SolidFactor = 0.75f;
-        public const float BlendFactor = 1f - SolidFactor;
-		
-        public static readonly Vector3[] Corners = 
+
+        public const int Width = 20;
+        public const int Height = 20;
+
+        private const float SolidFactor = 0.75f;
+        private const float BlendFactor = 1f - SolidFactor;
+
+        private static readonly Vector3[] Corners = 
         {
             new Vector3(0f, 0f, OuterRadius),
             new Vector3(InnerRadius, 0f, 0.5f * OuterRadius),
@@ -23,12 +23,6 @@ namespace MapGenerationProject.DOTS
             new Vector3(-InnerRadius, 0f, 0.5f * OuterRadius),
             new Vector3(0f, 0f, OuterRadius),
         };
-        
-        static HexMetrics()
-        {
-            Width = HexGrid.Width;
-            Height = HexGrid.Height;
-        }
         
         public static Vector3 GetFirstSolidCorner(HexDirection direction) 
         {
@@ -59,13 +53,13 @@ namespace MapGenerationProject.DOTS
         {
             int z = coordinates.Z;
             int x = coordinates.X + z / 2;
-            if (z < 0 || z >= 10 || x < 0 || x >= 10)
+            if (z < 0 || z >= Height || x < 0 || x >= Width)
             {
                 cell = default(HexCellData);
                 return false;
             }
 
-            cell = cells[x + z * 10];
+            cell = cells[x + z * Width];
             return true;
         }
     }

@@ -8,29 +8,18 @@ namespace MapGenerationProject.DOTS
 {
     public class HexGrid : MonoBehaviour, IHexSelectable
     {
-        [SerializeField] private int _width = 6;
-        [SerializeField] private int _height = 6;
         private static NativeArray<HexCellData> _cells;
-
-        public static int Width;
-        public static int Height;
         
         [SerializeField] private HexCellDataEventChannel _onGridCreated;
         [SerializeField] private HexCellDataEventChannel _onMeshCreated;
         
-        private void Awake()
-        {
-            Width = _width;
-            Height = _height;
-        }
-        
         private void Start() 
         {
-            _cells = new NativeArray<HexCellData>(Width * Height, Allocator.Persistent);
+            _cells = new NativeArray<HexCellData>(HexMetrics.Width * HexMetrics.Height, Allocator.Persistent);
             GenerateHexGridJob generateHexGridJob = new GenerateHexGridJob
             {
                 Cells = _cells,
-                Width = Width,
+                Width = HexMetrics.Width,
             };
             JobHandle generateHexGridHandle = generateHexGridJob.Schedule(_cells.Length, 64);
             generateHexGridHandle.Complete();
@@ -40,7 +29,7 @@ namespace MapGenerationProject.DOTS
 
         public void ColorCell(HexCoordinates coordinates, Color color)
         {
-            int index = coordinates.X + coordinates.Z * Width + coordinates.Z / 2;
+            int index = coordinates.X + coordinates.Z * HexMetrics.Width + coordinates.Z / 2;
             HexCellData cell = _cells[index];
             cell.Color = color;
             _cells[index] = cell;
