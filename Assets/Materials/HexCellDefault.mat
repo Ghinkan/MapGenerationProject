@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: HexCellDefault
-  m_Shader: {fileID: 4800000, guid: 933d1387820694f55b3255b64eb5afcc, type: 3}
+  m_Shader: {fileID: 4800000, guid: 2a92265a74fa66c409e63b5b81bc6374, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
