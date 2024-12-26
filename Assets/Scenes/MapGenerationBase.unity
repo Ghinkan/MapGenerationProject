@@ -499,7 +499,7 @@ MonoBehaviour:
   m_Direction: 2
   m_MinValue: 0
   m_MaxValue: 6
-  m_WholeNumbers: 0
+  m_WholeNumbers: 1
   m_Value: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -1143,6 +1143,7 @@ MonoBehaviour:
   cellPrefab: {fileID: 3288200390092362799, guid: 81563e760e26806458a1883789baf015, type: 3}
   cellLabelPrefab: {fileID: 6246682688494152822, guid: baf90fc11f8f0ad4990907cd6c139cd4, type: 3}
   defaultColor: {r: 1, g: 1, b: 1, a: 1}
+  noiseSource: {fileID: 2800000, guid: 55ec382811609ac41b48be98d4020254, type: 3}
 --- !u!4 &1609947342
 Transform:
   m_ObjectHideFlags: 0
@@ -1210,7 +1211,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -2145,7 +2147,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -2444,7 +2447,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -2675,7 +2679,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -2849,9 +2854,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hexGrid: {fileID: 1609947341}
   colors:
-  - {r: 0.9686275, g: 0.86666673, b: 0, a: 1}
-  - {r: 0.39215687, g: 0.88140154, b: 0, a: 1}
-  - {r: 0, g: 0.09803922, b: 1, a: 1}
+  - {r: 1, g: 0.9574468, b: 0, a: 1}
+  - {r: 0.3289473, g: 1, b: 0, a: 1}
+  - {r: 0, g: 0.24603176, b: 1, a: 1}
   - {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &8997043958742925246
 GameObject:
