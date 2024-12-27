@@ -19,6 +19,11 @@ namespace MapGenerationProject.DOTS
         private const float SolidFactor = 0.75f;
         private const float BlendFactor = 1f - SolidFactor;
 
+        public static TextureData NoiseData;
+        public const float NoiseScale = 0.003f;
+        public const float CellPerturbStrength = 5f;
+        public const float ElevationPerturbStrength = 1.5f;
+        
         private static readonly Vector3[] Corners = 
         {
             new Vector3(0f, 0f, OuterRadius),
@@ -29,6 +34,18 @@ namespace MapGenerationProject.DOTS
             new Vector3(-InnerRadius, 0f, 0.5f * OuterRadius),
             new Vector3(0f, 0f, OuterRadius),
         };
+        
+        public static Vector4 SampleNoise(Vector3 position)
+        {
+            // Convertir coordenadas del mundo a coordenadas normalizadas [0, 1]
+            float u = position.x * NoiseScale % 1f;
+            float v = position.z * NoiseScale % 1f;
+            if (u < 0) u += 1f;
+            if (v < 0) v += 1f;
+                
+            Vector4 sample = TextureUtils.SampleBilinear(NoiseData, u, v);
+            return sample;
+        }
         
         public static Vector3 GetFirstSolidCorner(HexDirection direction) 
         {

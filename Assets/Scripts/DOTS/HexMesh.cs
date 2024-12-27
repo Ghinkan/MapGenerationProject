@@ -4,17 +4,18 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.EventChannels;
-using UnityEngine.Serialization;
 namespace MapGenerationProject.DOTS
 {
     public class HexMesh : MonoBehaviour
     {
         [SerializeField] private VoidEventChannel _onGridCreated;
         [SerializeField] private VoidEventChannel _refreshMesh;
+        [SerializeField] private Texture2D _noiseSource;
 
         private Mesh _hexMesh;
         private MeshCollider _meshCollider;
 
+        private TextureData _textureData;
         private NativeArray<Vector3> _vertices;
         private NativeArray<int> _triangles;
         private NativeArray<Color> _colors;
@@ -24,10 +25,15 @@ namespace MapGenerationProject.DOTS
             GetComponent<MeshFilter>().mesh = _hexMesh = new Mesh();
             _meshCollider = GetComponent<MeshCollider>();
             _hexMesh.name = "Hex Mesh";
+            
+            _textureData = new TextureData(TextureUtils.ConvertTexture2DToNativeArray(_noiseSource, Allocator.Persistent), _noiseSource.width, _noiseSource.height);
+            HexMetrics.NoiseData = _textureData;
         }
-
+        
         private void OnEnable()
         {
+            HexMetrics.NoiseData = _textureData;
+            
             _onGridCreated.GameEvent += Triangulate;
             _refreshMesh.GameEvent += Triangulate;
         }
@@ -61,6 +67,7 @@ namespace MapGenerationProject.DOTS
                 Vertices = _vertices.GetSubArray(0, centerHexCount),
                 Triangles = _triangles.GetSubArray(0, centerHexCount),
                 Colors = _colors.GetSubArray(0, centerHexCount),
+                TextureData = _textureData,
             };
 
             GenerateConnectionHexMeshJob generateConnectionHexMeshJob = new GenerateConnectionHexMeshJob
@@ -70,6 +77,7 @@ namespace MapGenerationProject.DOTS
                 Triangles = _triangles.GetSubArray(centerHexCount, connectionTrianglesCount),
                 Colors = _colors.GetSubArray(centerHexCount, connectionVerticesCount),
                 BaseTriangleOffset = centerHexCount,
+                TextureData = _textureData,
             };
 
             JobHandle generateCenterHandle = generateCenterHexMeshJob.Schedule(cells.Length, 64);
@@ -83,6 +91,7 @@ namespace MapGenerationProject.DOTS
             _hexMesh.RecalculateNormals();
             
             _meshCollider.sharedMesh = _hexMesh;
+            
             DisposeBuffers();
         }
 
@@ -93,11 +102,18 @@ namespace MapGenerationProject.DOTS
             _colors.Dispose();
         }
 
+        private void OnDestroy()
+        {
+            DisposeBuffers(); 
+            _textureData.Dispose();
+        }
+
         [BurstCompile]
         private struct GenerateCenterHexMeshJob : IJobParallelFor
         {
             [ReadOnly] public NativeArray<HexCellData> Cells;
-
+            [ReadOnly] public TextureData TextureData;
+            
             [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<Vector3> Vertices;
             [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<int> Triangles;
             [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<Color> Colors;
@@ -119,11 +135,26 @@ namespace MapGenerationProject.DOTS
                 }
             }
             
+            private Vector3 Perturb(Vector3 position)
+            {
+                // Convertir coordenadas del mundo a coordenadas normalizadas [0, 1]
+                float u = position.x * HexMetrics.NoiseScale % 1f;
+                float v = position.z * HexMetrics.NoiseScale % 1f;
+                if (u < 0) u += 1f;
+                if (v < 0) v += 1f;
+                
+                Vector4 sample = TextureUtils.SampleBilinear(TextureData, u, v);
+                position.x += (sample.x * 2f - 1f) * HexMetrics.CellPerturbStrength;
+                // position.y += (sample.y * 2f - 1f) * HexMetrics.CellPerturbStrength;
+                position.z += (sample.z * 2f - 1f) * HexMetrics.CellPerturbStrength;
+                return position;
+            }
+            
             private void AddTriangle(Vector3 v1, Vector3 v2, Vector3 v3, Color cellColor)
             {
-                Vertices[_baseVertexIndex] = v1;
-                Vertices[_baseVertexIndex + 1] = v2;
-                Vertices[_baseVertexIndex + 2] = v3;
+                Vertices[_baseVertexIndex] = Perturb(v1);
+                Vertices[_baseVertexIndex + 1] = Perturb(v2);
+                Vertices[_baseVertexIndex + 2] = Perturb(v3);
 
                 Colors[_baseVertexIndex] = cellColor;
                 Colors[_baseVertexIndex + 1] = cellColor;
@@ -141,6 +172,7 @@ namespace MapGenerationProject.DOTS
         private struct GenerateConnectionHexMeshJob : IJobParallelFor
         {
             [ReadOnly] public NativeArray<HexCellData> Cells;
+            [ReadOnly] public TextureData TextureData;
             [ReadOnly] public int BaseTriangleOffset;
             
             [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<Vector3> Vertices;
@@ -167,7 +199,7 @@ namespace MapGenerationProject.DOTS
                     Vector3 bridge = HexMetrics.GetBridge(direction);
                     Vector3 v3 = v1 + bridge;
                     Vector3 v4 = v2 + bridge;
-                    v3.y = v4.y = neighbor.Elevation * HexMetrics.ElevationStep;
+                    v3.y = v4.y = neighbor.Position.y;
 
                     if (HexMetrics.GetEdgeType(cell.Elevation, neighbor.Elevation) == HexEdgeType.Slope)
                     {
@@ -179,7 +211,7 @@ namespace MapGenerationProject.DOTS
                     if (direction <= HexDirection.E && HexMetrics.TryGetCell(Cells, cell.Coordinates.Step(direction.Next()), out HexCellData nextNeighbor))
                     {
                         Vector3 v5 = v2 + HexMetrics.GetBridge(direction.Next());
-                        v5.y = nextNeighbor.Elevation * HexMetrics.ElevationStep;
+                        v5.y = nextNeighbor.Position.y;
                         
                         if (cell.Elevation <= neighbor.Elevation) 
                         {
@@ -204,12 +236,27 @@ namespace MapGenerationProject.DOTS
                 }
             }
             
+            private Vector3 Perturb(Vector3 position)
+            {
+                // Convertir coordenadas del mundo a coordenadas normalizadas [0, 1]
+                float u = position.x * HexMetrics.NoiseScale % 1f;
+                float v = position.z * HexMetrics.NoiseScale % 1f;
+                if (u < 0) u += 1f;
+                if (v < 0) v += 1f;
+                
+                Vector4 sample = TextureUtils.SampleBilinear(TextureData, u, v);
+                position.x += (sample.x * 2f - 1f) * HexMetrics.CellPerturbStrength;
+                // position.y += (sample.y * 2f - 1f) * HexMetrics.CellPerturbStrength;
+                position.z += (sample.z * 2f - 1f) * HexMetrics.CellPerturbStrength;
+                return position;
+            }
+            
             private void AddQuad(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, Color c1, Color c2) 
             {
-                Vertices[_vertexIndex] = v1;
-                Vertices[_vertexIndex + 1] = v2;
-                Vertices[_vertexIndex + 2] = v3;
-                Vertices[_vertexIndex + 3] = v4;
+                Vertices[_vertexIndex] = Perturb(v1);
+                Vertices[_vertexIndex + 1] = Perturb(v2);
+                Vertices[_vertexIndex + 2] = Perturb(v3);
+                Vertices[_vertexIndex + 3] = Perturb(v4);
                 
                 Colors[_vertexIndex] = c1;
                 Colors[_vertexIndex + 1] = c1;
@@ -229,10 +276,10 @@ namespace MapGenerationProject.DOTS
             
             private void AddQuad(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, Color c1, Color c2, Color c3, Color c4) 
             {
-                Vertices[_vertexIndex] = v1;
-                Vertices[_vertexIndex + 1] = v2;
-                Vertices[_vertexIndex + 2] = v3;
-                Vertices[_vertexIndex + 3] = v4;
+                Vertices[_vertexIndex] = Perturb(v1);
+                Vertices[_vertexIndex + 1] = Perturb(v2);
+                Vertices[_vertexIndex + 2] = Perturb(v3);
+                Vertices[_vertexIndex + 3] = Perturb(v4);
                 
                 Colors[_vertexIndex] = c1;
                 Colors[_vertexIndex + 1] = c2;
@@ -252,9 +299,9 @@ namespace MapGenerationProject.DOTS
 
             private void AddTriangle(Vector3 v1, Vector3 v2, Vector3 v3, Color cellColor, Color neighborColor, Color nextNeighbor)
             {
-                Vertices[_vertexIndex] = v1;
-                Vertices[_vertexIndex + 1] = v2;
-                Vertices[_vertexIndex + 2] = v3;
+                Vertices[_vertexIndex] = Perturb(v1);
+                Vertices[_vertexIndex + 1] = Perturb(v2);
+                Vertices[_vertexIndex + 2] = Perturb(v3);
 
                 Colors[_vertexIndex] = cellColor;
                 Colors[_vertexIndex + 1] = neighborColor;

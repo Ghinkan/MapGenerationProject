@@ -672,6 +672,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _onGridCreated: {fileID: 11400000, guid: 75884a3a93daff241a6b4fb88c64974c, type: 2}
   _refreshMesh: {fileID: 11400000, guid: 0ec43c76f3f5c0b439a63a78945206e9, type: 2}
+  _noiseSource: {fileID: 2800000, guid: 55ec382811609ac41b48be98d4020254, type: 3}
 --- !u!1 &774812847
 GameObject:
   m_ObjectHideFlags: 0

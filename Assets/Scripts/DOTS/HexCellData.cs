@@ -17,6 +17,7 @@ namespace MapGenerationProject.DOTS
             {
                 _elevation = value;
                 Position.y = value * HexMetrics.ElevationStep;
+                Position.y += (HexMetrics.SampleNoise(Position).y * 2f - 1f) * HexMetrics.ElevationPerturbStrength;
             }
         }
     }
