@@ -10,12 +10,10 @@ namespace MapGenerationProject.DOTS
     {
         [SerializeField] private VoidEventChannel _onGridCreated;
         [SerializeField] private VoidEventChannel _refreshMesh;
-        [SerializeField] private Texture2D _noiseSource;
 
         private Mesh _hexMesh;
         private MeshCollider _meshCollider;
 
-        private TextureData _textureData;
         private NativeArray<Vector3> _vertices;
         private NativeArray<int> _triangles;
         private NativeArray<Color> _colors;
@@ -25,15 +23,10 @@ namespace MapGenerationProject.DOTS
             GetComponent<MeshFilter>().mesh = _hexMesh = new Mesh();
             _meshCollider = GetComponent<MeshCollider>();
             _hexMesh.name = "Hex Mesh";
-            
-            _textureData = new TextureData(TextureUtils.ConvertTexture2DToNativeArray(_noiseSource, Allocator.Persistent), _noiseSource.width, _noiseSource.height);
-            HexMetrics.NoiseData = _textureData;
         }
         
         private void OnEnable()
         {
-            HexMetrics.NoiseData = _textureData;
-            
             _onGridCreated.GameEvent += Triangulate;
             _refreshMesh.GameEvent += Triangulate;
         }
@@ -67,7 +60,7 @@ namespace MapGenerationProject.DOTS
                 Vertices = _vertices.GetSubArray(0, centerHexCount),
                 Triangles = _triangles.GetSubArray(0, centerHexCount),
                 Colors = _colors.GetSubArray(0, centerHexCount),
-                TextureData = _textureData,
+                TextureData = HexMetrics.NoiseData,
             };
 
             GenerateConnectionHexMeshJob generateConnectionHexMeshJob = new GenerateConnectionHexMeshJob
@@ -77,7 +70,7 @@ namespace MapGenerationProject.DOTS
                 Triangles = _triangles.GetSubArray(centerHexCount, connectionTrianglesCount),
                 Colors = _colors.GetSubArray(centerHexCount, connectionVerticesCount),
                 BaseTriangleOffset = centerHexCount,
-                TextureData = _textureData,
+                TextureData = HexMetrics.NoiseData,
             };
 
             JobHandle generateCenterHandle = generateCenterHexMeshJob.Schedule(cells.Length, 64);
@@ -100,12 +93,6 @@ namespace MapGenerationProject.DOTS
             _vertices.Dispose();
             _triangles.Dispose();
             _colors.Dispose();
-        }
-
-        private void OnDestroy()
-        {
-            DisposeBuffers(); 
-            _textureData.Dispose();
         }
 
         [BurstCompile]
@@ -137,15 +124,8 @@ namespace MapGenerationProject.DOTS
             
             private Vector3 Perturb(Vector3 position)
             {
-                // Convertir coordenadas del mundo a coordenadas normalizadas [0, 1]
-                float u = position.x * HexMetrics.NoiseScale % 1f;
-                float v = position.z * HexMetrics.NoiseScale % 1f;
-                if (u < 0) u += 1f;
-                if (v < 0) v += 1f;
-                
-                Vector4 sample = TextureUtils.SampleBilinear(TextureData, u, v);
+                Vector4 sample = HexMetrics.SampleNoise(position, TextureData);
                 position.x += (sample.x * 2f - 1f) * HexMetrics.CellPerturbStrength;
-                // position.y += (sample.y * 2f - 1f) * HexMetrics.CellPerturbStrength;
                 position.z += (sample.z * 2f - 1f) * HexMetrics.CellPerturbStrength;
                 return position;
             }
@@ -238,15 +218,8 @@ namespace MapGenerationProject.DOTS
             
             private Vector3 Perturb(Vector3 position)
             {
-                // Convertir coordenadas del mundo a coordenadas normalizadas [0, 1]
-                float u = position.x * HexMetrics.NoiseScale % 1f;
-                float v = position.z * HexMetrics.NoiseScale % 1f;
-                if (u < 0) u += 1f;
-                if (v < 0) v += 1f;
-                
-                Vector4 sample = TextureUtils.SampleBilinear(TextureData, u, v);
+                Vector4 sample = HexMetrics.SampleNoise(position, TextureData);
                 position.x += (sample.x * 2f - 1f) * HexMetrics.CellPerturbStrength;
-                // position.y += (sample.y * 2f - 1f) * HexMetrics.CellPerturbStrength;
                 position.z += (sample.z * 2f - 1f) * HexMetrics.CellPerturbStrength;
                 return position;
             }

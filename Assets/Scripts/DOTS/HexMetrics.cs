@@ -6,6 +6,16 @@ namespace MapGenerationProject.DOTS
     {
         public const float OuterRadius = 10f;
         public const float InnerRadius = OuterRadius * 0.866025404f;
+        private static readonly Vector3[] Corners = 
+        {
+            new Vector3(0f, 0f, OuterRadius),
+            new Vector3(InnerRadius, 0f, 0.5f * OuterRadius),
+            new Vector3(InnerRadius, 0f, -0.5f * OuterRadius),
+            new Vector3(0f, 0f, -OuterRadius),
+            new Vector3(-InnerRadius, 0f, -0.5f * OuterRadius),
+            new Vector3(-InnerRadius, 0f, 0.5f * OuterRadius),
+            new Vector3(0f, 0f, OuterRadius),
+        };
 
         public const int Width = 20;
         public const int Height = 20;
@@ -19,23 +29,12 @@ namespace MapGenerationProject.DOTS
         private const float SolidFactor = 0.75f;
         private const float BlendFactor = 1f - SolidFactor;
 
-        public static TextureData NoiseData;
+        public static TextureData NoiseData; //TODO: Comprobar si puedo hacerlo readonly y settear todas las variables en un scriptable object
         public const float NoiseScale = 0.003f;
         public const float CellPerturbStrength = 5f;
         public const float ElevationPerturbStrength = 1.5f;
         
-        private static readonly Vector3[] Corners = 
-        {
-            new Vector3(0f, 0f, OuterRadius),
-            new Vector3(InnerRadius, 0f, 0.5f * OuterRadius),
-            new Vector3(InnerRadius, 0f, -0.5f * OuterRadius),
-            new Vector3(0f, 0f, -OuterRadius),
-            new Vector3(-InnerRadius, 0f, -0.5f * OuterRadius),
-            new Vector3(-InnerRadius, 0f, 0.5f * OuterRadius),
-            new Vector3(0f, 0f, OuterRadius),
-        };
-        
-        public static Vector4 SampleNoise(Vector3 position)
+        public static Vector4 SampleNoise(Vector3 position, TextureData noiseData)
         {
             // Convertir coordenadas del mundo a coordenadas normalizadas [0, 1]
             float u = position.x * NoiseScale % 1f;
@@ -43,7 +42,7 @@ namespace MapGenerationProject.DOTS
             if (u < 0) u += 1f;
             if (v < 0) v += 1f;
                 
-            Vector4 sample = TextureUtils.SampleBilinear(NoiseData, u, v);
+            Vector4 sample = TextureUtils.SampleBilinear(noiseData, u, v);
             return sample;
         }
         

@@ -1,12 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.EventChannels;
 using UnityEngine.EventSystems;
-using UnityEngine.Serialization;
 namespace MapGenerationProject.DOTS
 {
     public class HexSelectionManager : MonoBehaviour
     {
-        [FormerlySerializedAs("_onHexSelected")]
         [SerializeField] private IntEventChannel _hexSelected;
         [SerializeField] private VoidEventChannel _refreshMesh;
         [SerializeField] private Color[] _colors;
@@ -43,9 +41,14 @@ namespace MapGenerationProject.DOTS
         {
             int index = HexMetrics.GetCellIndex(coordinates);
             HexCellData cell = HexGrid.Cells[index];
+
+            Vector3 position = cell.Position;
+            Vector4 sample = HexMetrics.SampleNoise(position, HexMetrics.NoiseData);
+            position.y = _activeElevation * HexMetrics.ElevationStep;
+            position.y += (sample.y * 2f - 1f) * HexMetrics.ElevationPerturbStrength;
+            cell.SetElevation(_activeElevation, position);
             
             cell.Color = _activeColor;
-            cell.Elevation = _activeElevation;
 
             HexGrid.Cells[index] = cell;
             _hexSelected.RaiseEvent(index);

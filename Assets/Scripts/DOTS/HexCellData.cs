@@ -6,19 +6,12 @@ namespace MapGenerationProject.DOTS
         public Vector3 Position;
         public HexCoordinates Coordinates;
         public Color Color;
-        private int _elevation;
-        public int Elevation
+        public int Elevation { get; private set; }
+        
+        public void SetElevation(int elevation, Vector3 position) 
         {
-            get 
-            {
-                return _elevation;
-            }
-            set 
-            {
-                _elevation = value;
-                Position.y = value * HexMetrics.ElevationStep;
-                Position.y += (HexMetrics.SampleNoise(Position).y * 2f - 1f) * HexMetrics.ElevationPerturbStrength;
-            }
+            Elevation = elevation;
+            Position = position;
         }
     }
 }
