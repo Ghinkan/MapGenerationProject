@@ -1,5 +1,7 @@
-﻿using Unity.Burst;
+﻿using System.Collections.Generic;
+using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
@@ -14,9 +16,16 @@ namespace MapGenerationProject.DOTS
         private Mesh _hexMesh;
         private MeshCollider _meshCollider;
 
-        private NativeArray<Vector3> _vertices;
-        private NativeArray<int> _triangles;
-        private NativeArray<Color> _colors;
+        // private NativeArray<Vector3> _vertices;
+        // private NativeArray<int> _triangles;
+        // private NativeArray<Color> _colors;
+        
+        private NativeList<Vector3> _vertices;
+        private NativeList<int> _triangles;
+        private NativeList<Color> _colors;
+
+        
+        public NativeArray<HexMeshData> OutputData;
 
         private void Awake()
         {
@@ -42,45 +51,74 @@ namespace MapGenerationProject.DOTS
             _hexMesh.Clear();
             
             NativeArray<HexCellData> cells = HexGrid.Cells;
-            int centerHexCount = cells.Length * 18;
-            int connectionVerticesCount = cells.Length * 6 * 4 * (5);   //TODO:Hace falta?
-            int connectionTrianglesCount = cells.Length * 6 * 6 * (5);  //TODO:Hace falta?
+            // int centerHexCount = cells.Length * 18;
+            // int centerHexCount = cells.Length * 18 * 3;
+            // int connectionVerticesCount = cells.Length * 6 * 4 * (5);   //TODO:Hace falta?
+            // int connectionTrianglesCount = cells.Length * 6 * 6 * (5);  //TODO:Hace falta?
             
-            int totalVerticesCount = centerHexCount + connectionVerticesCount;
-            int totalTrianglesCount = centerHexCount + connectionTrianglesCount;
-            int totalColorsCount = centerHexCount + connectionVerticesCount;
+            // int totalVerticesCount = centerHexCount + connectionVerticesCount;
+            // int totalTrianglesCount = centerHexCount + connectionTrianglesCount;
+            // int totalColorsCount = centerHexCount + connectionVerticesCount;
+            
+            
+            // _vertices = new NativeArray<Vector3>(totalVerticesCount, Allocator.Persistent);
+            // _triangles = new NativeArray<int>(totalTrianglesCount, Allocator.Persistent);
+            // _colors = new NativeArray<Color>(totalColorsCount, Allocator.Persistent);
+            
 
-            _vertices = new NativeArray<Vector3>(totalVerticesCount, Allocator.Persistent);
-            _triangles = new NativeArray<int>(totalTrianglesCount, Allocator.Persistent);
-            _colors = new NativeArray<Color>(totalColorsCount, Allocator.Persistent);
+            OutputData = new NativeArray<HexMeshData>(cells.Length, Allocator.Persistent);
 
-            GenerateCenterHexMeshJob generateCenterHexMeshJob = new GenerateCenterHexMeshJob
+            // GenerateCenterHexMeshJob generateCenterHexMeshJob = new GenerateCenterHexMeshJob
+            // {
+            //     Cells = cells,
+            //     Vertices = _vertices.GetSubArray(0, centerHexCount),
+            //     Triangles = _triangles.GetSubArray(0, centerHexCount),
+            //     Colors = _colors.GetSubArray(0, centerHexCount),
+            //     TextureData = HexMetrics.NoiseData,
+            // };
+
+            GenerateCenterHexMeshDataJob generateCenterHexMeshDataJob = new GenerateCenterHexMeshDataJob 
             {
                 Cells = cells,
-                Vertices = _vertices.GetSubArray(0, centerHexCount),
-                Triangles = _triangles.GetSubArray(0, centerHexCount),
-                Colors = _colors.GetSubArray(0, centerHexCount),
                 TextureData = HexMetrics.NoiseData,
+                OutputData = OutputData,
             };
 
-            GenerateConnectionHexMeshJob generateConnectionHexMeshJob = new GenerateConnectionHexMeshJob
+            // GenerateConnectionHexMeshJob generateConnectionHexMeshJob = new GenerateConnectionHexMeshJob
+            // {
+            //     Cells = cells,
+            //     Vertices = _vertices.GetSubArray(centerHexCount, connectionVerticesCount),
+            //     Triangles = _triangles.GetSubArray(centerHexCount, connectionTrianglesCount),
+            //     Colors = _colors.GetSubArray(centerHexCount, connectionVerticesCount),
+            //     BaseTriangleOffset = centerHexCount,
+            //     TextureData = HexMetrics.NoiseData,
+            // };
+            
+            // JobHandle generateCenterHandle = generateCenterHexMeshJob.Schedule(cells.Length, 64);
+            // JobHandle generateConnectionHandle = generateConnectionHexMeshJob.Schedule(cells.Length, 64, generateCenterHandle);
+            // JobHandle combinedHandle = JobHandle.CombineDependencies(generateCenterHandle, generateConnectionHandle);
+            // combinedHandle.Complete();
+            
+            JobHandle generateCenterHexMeshDataHandle = generateCenterHexMeshDataJob.Schedule(cells.Length, 64);
+            generateCenterHexMeshDataHandle.Complete();
+            
+            _vertices = new NativeList<Vector3>(Allocator.Persistent);
+            _triangles = new NativeList<int>(Allocator.Persistent);
+            _colors = new NativeList<Color>(Allocator.Persistent);
+            
+            for (int i = 0; i < OutputData.Length; i++)
             {
-                Cells = cells,
-                Vertices = _vertices.GetSubArray(centerHexCount, connectionVerticesCount),
-                Triangles = _triangles.GetSubArray(centerHexCount, connectionTrianglesCount),
-                Colors = _colors.GetSubArray(centerHexCount, connectionVerticesCount),
-                BaseTriangleOffset = centerHexCount,
-                TextureData = HexMetrics.NoiseData,
-            };
-
-            JobHandle generateCenterHandle = generateCenterHexMeshJob.Schedule(cells.Length, 64);
-            JobHandle generateConnectionHandle = generateConnectionHexMeshJob.Schedule(cells.Length, 64, generateCenterHandle);
-            JobHandle combinedHandle = JobHandle.CombineDependencies(generateCenterHandle, generateConnectionHandle);
-            combinedHandle.Complete();
-
-            _hexMesh.SetVertices(_vertices);
-            _hexMesh.SetTriangles(_triangles.ToArray(), 0);
-            _hexMesh.SetColors(_colors);
+                _vertices.AddRange(OutputData[i].Vertices.AsArray());
+                _triangles.AddRange(OutputData[i].Triangles.AsArray());
+                _colors.AddRange(OutputData[i].Colors.AsArray());
+            }
+            
+            List<int> triangleList = new List<int>(_triangles.Length);
+            triangleList.AddRange(_triangles);
+            
+            _hexMesh.SetVertices(_vertices.AsArray());
+            _hexMesh.SetTriangles(triangleList, 0);
+            _hexMesh.SetColors(_colors.AsArray());
             _hexMesh.RecalculateNormals();
             
             _meshCollider.sharedMesh = _hexMesh;
@@ -93,7 +131,55 @@ namespace MapGenerationProject.DOTS
             _vertices.Dispose();
             _triangles.Dispose();
             _colors.Dispose();
+            
+            OutputData.Dispose();
         }
+        
+        // [BurstCompile]
+        private struct GenerateCenterHexMeshDataJob : IJobParallelFor
+        {
+            [ReadOnly] public NativeArray<HexCellData> Cells;
+            [ReadOnly] public TextureData TextureData;
+
+            [NativeDisableContainerSafetyRestriction] [WriteOnly]
+            public NativeArray<HexMeshData> OutputData;
+
+            public void Execute(int index)
+            {
+                HexCellData cell = Cells[index];
+                HexMeshData meshData = new HexMeshData
+                {
+                    Vertices = new NativeList<Vector3>(Allocator.Temp),
+                    Triangles = new NativeList<int>(Allocator.Temp),
+                    Colors = new NativeList<Color>(Allocator.Temp),
+                };
+
+                Vector3 center = cell.Position;
+
+                for (HexDirection direction = HexDirection.NE; direction <= HexDirection.NW; direction++)
+                {
+                    Vector3 v1 = Perturb(center + HexMetrics.GetFirstSolidCorner(direction));
+                    Vector3 v2 = Perturb(center + HexMetrics.GetSecondSolidCorner(direction));
+                    Vector3 e1 = Perturb(Vector3.Lerp(v1, v2, 1f / 3f));
+                    Vector3 e2 = Perturb(Vector3.Lerp(v1, v2, 2f / 3f));
+
+                    meshData.AddTriangle(center, v1, e1, cell.Color);
+                    meshData.AddTriangle(center, e1, e2, cell.Color);
+                    meshData.AddTriangle(center, e2, v2, cell.Color);
+                }
+
+                OutputData[index] = meshData;
+            }
+
+            private Vector3 Perturb(Vector3 position)
+            {
+                Vector4 sample = HexMetrics.SampleNoise(position, TextureData);
+                position.x += (sample.x * 2f - 1f) * HexMetrics.CellPerturbStrength;
+                position.z += (sample.z * 2f - 1f) * HexMetrics.CellPerturbStrength;
+                return position;
+            }
+        }
+        
 
         [BurstCompile]
         private struct GenerateCenterHexMeshJob : IJobParallelFor
@@ -106,19 +192,26 @@ namespace MapGenerationProject.DOTS
             [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<Color> Colors;
 
             private int _baseVertexIndex;
-
+            
             public void Execute(int index)
             {
                 HexCellData cell = Cells[index];
                 Vector3 center = cell.Position;
                 
-                _baseVertexIndex = index * 18;
+                // _baseVertexIndex = index * 18;
+                _baseVertexIndex = index * 18 * 3;
 
                 for (HexDirection direction = HexDirection.NE; direction <= HexDirection.NW; direction++)
                 {
                     Vector3 v1 = center + HexMetrics.GetFirstSolidCorner(direction);
                     Vector3 v2 = center + HexMetrics.GetSecondSolidCorner(direction);
-                    AddTriangle(center, v1, v2, cell.Color);
+                    Vector3 e1 = Vector3.Lerp(v1, v2, 1f / 3f);
+                    Vector3 e2 = Vector3.Lerp(v1, v2, 2f / 3f);
+                    
+                    // AddTriangle(center, v1, v2, cell.Color);
+                    AddTriangle(center, v1, e1, cell.Color);
+                    AddTriangle(center, e1, e2, cell.Color);
+                    AddTriangle(center, e2, v2, cell.Color);
                 }
             }
             
@@ -163,12 +256,15 @@ namespace MapGenerationProject.DOTS
             private int _trianglesIndex;
             
             public void Execute(int index)
-            {
+            {  
                 HexCellData cell = Cells[index];
                 Vector3 center = cell.Position;
                 
-                _vertexIndex = index * 6 * 4 * (5);     //TODO:Hace falta?
-                _trianglesIndex = index * 6 * 6 * (5);  //TODO:Hace falta?
+                // _vertexIndex = index * 6 * 4 * (5);
+                // _trianglesIndex = index * 6 * 6 * (5);
+                
+                _vertexIndex = index * 4 * 3 * 6; // 4 vertices por quad, 3 quads por hexagono, 6 direcciones
+                _trianglesIndex = index * 6 * 3 * 6; // 6 triangulos por quad, 3 quads por hexagono, 6 direcciones
                 
                 for (HexDirection direction = HexDirection.NE; direction <= HexDirection.SE; direction++)
                 {
@@ -180,13 +276,23 @@ namespace MapGenerationProject.DOTS
                     Vector3 v3 = v1 + bridge;
                     Vector3 v4 = v2 + bridge;
                     v3.y = v4.y = neighbor.Position.y;
+                    
+                    Vector3 e1 = Vector3.Lerp(v1, v2, 1f / 3f);
+                    Vector3 e2 = Vector3.Lerp(v1, v2, 2f / 3f);
+                    Vector3 e3 = Vector3.Lerp(v3, v4, 1f / 3f);
+                    Vector3 e4 = Vector3.Lerp(v3, v4, 2f / 3f);
 
                     if (HexMetrics.GetEdgeType(cell.Elevation, neighbor.Elevation) == HexEdgeType.Slope)
                     {
                         TriangulateEdgeTerraces(v1, v2, cell.Color, v3, v4, neighbor.Color);
                     }
-                    else 
-                        AddQuad(v1, v2, v3, v4, cell.Color, neighbor.Color);
+                    else
+                    {
+                        // AddQuad(v1, v2, v3, v4, cell.Color, neighbor.Color);
+                        AddQuad(v1, e1, v3, e3, cell.Color, neighbor.Color);
+                        AddQuad(e1, e2, e3, e4, cell.Color, neighbor.Color);
+                        AddQuad(e2, v2, e4, v4, cell.Color, neighbor.Color);
+                    }
    
                     if (direction <= HexDirection.E && HexMetrics.TryGetCell(Cells, cell.Coordinates.Step(direction.Next()), out HexCellData nextNeighbor))
                     {
