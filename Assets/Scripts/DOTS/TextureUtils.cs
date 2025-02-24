@@ -5,11 +5,9 @@ namespace MapGenerationProject.DOTS
 {
     public static class TextureUtils
     {
-        public static NativeArray<Color> ConvertTexture2DToNativeArray(Texture2D texture, Allocator allocator)
+        public static NativeArray<Color32> ConvertTexture2DToNativeArray(Texture2D texture, Allocator allocator)
         {
-            Color[] colors = texture.GetPixels();
-            NativeArray<Color> nativeArray = new NativeArray<Color>(colors, allocator);
-            return nativeArray;
+            return texture.GetRawTextureData<Color32>();
         }
         
         private static float4 GetPixelColor(TextureData texture, int x, int y)

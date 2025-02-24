@@ -17,8 +17,8 @@ namespace MapGenerationProject.DOTS
             new Vector3(0f, 0f, OuterRadius),
         };
 
-        public const int Width = 20;
-        public const int Height = 20;
+        public const int Width = 5;
+        public const int Height = 5;
         
         public const float ElevationStep = 5f;
         public const int TerracesPerSlope = 2;

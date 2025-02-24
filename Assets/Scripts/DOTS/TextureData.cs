@@ -4,11 +4,11 @@ namespace MapGenerationProject.DOTS
 {
     public struct TextureData
     {
-        public NativeArray<Color> Colors;
+        public NativeArray<Color32> Colors;
         public readonly int Width;
         public readonly int Height;
         
-        public TextureData(NativeArray<Color> colors, int width, int height)
+        public TextureData(NativeArray<Color32> colors, int width, int height)
         {
             Colors = colors;
             Width = width;

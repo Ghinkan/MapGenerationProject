@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Unity.Burst;
+﻿using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
@@ -15,17 +14,12 @@ namespace MapGenerationProject.DOTS
 
         private Mesh _hexMesh;
         private MeshCollider _meshCollider;
-
-        // private NativeArray<Vector3> _vertices;
-        // private NativeArray<int> _triangles;
-        // private NativeArray<Color> _colors;
         
         private NativeList<Vector3> _vertices;
         private NativeList<int> _triangles;
         private NativeList<Color> _colors;
-
         
-        public NativeArray<HexMeshData> OutputData;
+        public NativeArray<HexMeshGridData> OutputData;
 
         private void Awake()
         {
@@ -66,16 +60,7 @@ namespace MapGenerationProject.DOTS
             // _colors = new NativeArray<Color>(totalColorsCount, Allocator.Persistent);
             
 
-            OutputData = new NativeArray<HexMeshData>(cells.Length, Allocator.Persistent);
-
-            // GenerateCenterHexMeshJob generateCenterHexMeshJob = new GenerateCenterHexMeshJob
-            // {
-            //     Cells = cells,
-            //     Vertices = _vertices.GetSubArray(0, centerHexCount),
-            //     Triangles = _triangles.GetSubArray(0, centerHexCount),
-            //     Colors = _colors.GetSubArray(0, centerHexCount),
-            //     TextureData = HexMetrics.NoiseData,
-            // };
+            OutputData = new NativeArray<HexMeshGridData>(cells.Length, Allocator.Persistent);
 
             GenerateCenterHexMeshDataJob generateCenterHexMeshDataJob = new GenerateCenterHexMeshDataJob 
             {
@@ -83,21 +68,6 @@ namespace MapGenerationProject.DOTS
                 TextureData = HexMetrics.NoiseData,
                 OutputData = OutputData,
             };
-
-            // GenerateConnectionHexMeshJob generateConnectionHexMeshJob = new GenerateConnectionHexMeshJob
-            // {
-            //     Cells = cells,
-            //     Vertices = _vertices.GetSubArray(centerHexCount, connectionVerticesCount),
-            //     Triangles = _triangles.GetSubArray(centerHexCount, connectionTrianglesCount),
-            //     Colors = _colors.GetSubArray(centerHexCount, connectionVerticesCount),
-            //     BaseTriangleOffset = centerHexCount,
-            //     TextureData = HexMetrics.NoiseData,
-            // };
-            
-            // JobHandle generateCenterHandle = generateCenterHexMeshJob.Schedule(cells.Length, 64);
-            // JobHandle generateConnectionHandle = generateConnectionHexMeshJob.Schedule(cells.Length, 64, generateCenterHandle);
-            // JobHandle combinedHandle = JobHandle.CombineDependencies(generateCenterHandle, generateConnectionHandle);
-            // combinedHandle.Complete();
             
             JobHandle generateCenterHexMeshDataHandle = generateCenterHexMeshDataJob.Schedule(cells.Length, 64);
             generateCenterHexMeshDataHandle.Complete();
@@ -106,18 +76,8 @@ namespace MapGenerationProject.DOTS
             _triangles = new NativeList<int>(Allocator.Persistent);
             _colors = new NativeList<Color>(Allocator.Persistent);
             
-            for (int i = 0; i < OutputData.Length; i++)
-            {
-                _vertices.AddRange(OutputData[i].Vertices.AsArray());
-                _triangles.AddRange(OutputData[i].Triangles.AsArray());
-                _colors.AddRange(OutputData[i].Colors.AsArray());
-            }
-            
-            List<int> triangleList = new List<int>(_triangles.Length);
-            triangleList.AddRange(_triangles);
-            
             _hexMesh.SetVertices(_vertices.AsArray());
-            _hexMesh.SetTriangles(triangleList, 0);
+            _hexMesh.SetTriangles(_triangles.AsArray().ToArray(), 0);
             _hexMesh.SetColors(_colors.AsArray());
             _hexMesh.RecalculateNormals();
             
@@ -135,23 +95,23 @@ namespace MapGenerationProject.DOTS
             OutputData.Dispose();
         }
         
-        // [BurstCompile]
+        [BurstCompile]
         private struct GenerateCenterHexMeshDataJob : IJobParallelFor
         {
             [ReadOnly] public NativeArray<HexCellData> Cells;
             [ReadOnly] public TextureData TextureData;
 
             [NativeDisableContainerSafetyRestriction] [WriteOnly]
-            public NativeArray<HexMeshData> OutputData;
+            public NativeArray<HexMeshGridData> OutputData;
 
             public void Execute(int index)
             {
                 HexCellData cell = Cells[index];
-                HexMeshData meshData = new HexMeshData
+                HexMeshGridData meshGridData = new HexMeshGridData
                 {
-                    Vertices = new NativeList<Vector3>(Allocator.Temp),
-                    Triangles = new NativeList<int>(Allocator.Temp),
-                    Colors = new NativeList<Color>(Allocator.Temp),
+                    // Vertices = new NativeList<Vector3>(Allocator.Temp),
+                    // TrianglesWriter = new NativeList<int>.ParallelWriter(),
+                    // Colors = new NativeList<Color>(Allocator.Temp),
                 };
 
                 Vector3 center = cell.Position;
@@ -163,12 +123,12 @@ namespace MapGenerationProject.DOTS
                     Vector3 e1 = Perturb(Vector3.Lerp(v1, v2, 1f / 3f));
                     Vector3 e2 = Perturb(Vector3.Lerp(v1, v2, 2f / 3f));
 
-                    meshData.AddTriangle(center, v1, e1, cell.Color);
-                    meshData.AddTriangle(center, e1, e2, cell.Color);
-                    meshData.AddTriangle(center, e2, v2, cell.Color);
+                    meshGridData.AddTriangle(center, v1, e1, cell.Color);
+                    meshGridData.AddTriangle(center, e1, e2, cell.Color);
+                    meshGridData.AddTriangle(center, e2, v2, cell.Color);
                 }
 
-                OutputData[index] = meshData;
+                OutputData[index] = meshGridData;
             }
 
             private Vector3 Perturb(Vector3 position)

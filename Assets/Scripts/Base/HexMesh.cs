@@ -5,38 +5,38 @@ namespace MapGenerationProject.Base
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
     public class HexMesh : MonoBehaviour
     {
-        private Mesh hexMesh;
-        private List<Vector3> vertices;
-        private List<Color> colors;
-        private List<int> triangles;
+        private Mesh _hexMesh;
+        private List<Vector3> _vertices;
+        private List<Color> _colors;
+        private List<int> _triangles;
 
-        private MeshCollider meshCollider;
+        private MeshCollider _meshCollider;
 
         private void Awake()
         {
-            GetComponent<MeshFilter>().mesh = hexMesh = new Mesh();
-            meshCollider = gameObject.AddComponent<MeshCollider>();
-            hexMesh.name = "Hex Mesh";
-            vertices = new List<Vector3>();
-            colors = new List<Color>();
-            triangles = new List<int>();
+            GetComponent<MeshFilter>().mesh = _hexMesh = new Mesh();
+            _meshCollider = GetComponent<MeshCollider>();
+            _hexMesh.name = "Hex Mesh";
+            _vertices = new List<Vector3>();
+            _colors = new List<Color>();
+            _triangles = new List<int>();
         }
 
         public void Triangulate(HexCell[] cells)
         {
-            hexMesh.Clear();
-            vertices.Clear();
-            colors.Clear();
-            triangles.Clear();
+            _hexMesh.Clear();
+            _vertices.Clear();
+            _colors.Clear();
+            _triangles.Clear();
             
             foreach (HexCell t in cells) 
                 Triangulate(t);
 
-            hexMesh.vertices = vertices.ToArray();
-            hexMesh.colors = colors.ToArray();
-            hexMesh.triangles = triangles.ToArray();
-            hexMesh.RecalculateNormals();
-            meshCollider.sharedMesh = hexMesh;
+            _hexMesh.vertices = _vertices.ToArray();
+            _hexMesh.colors = _colors.ToArray();
+            _hexMesh.triangles = _triangles.ToArray();
+            _hexMesh.RecalculateNormals();
+            _meshCollider.sharedMesh = _hexMesh;
         }
 
         private void Triangulate(HexCell cell)
@@ -257,69 +257,69 @@ namespace MapGenerationProject.Base
 
         private void AddTriangle(Vector3 v1, Vector3 v2, Vector3 v3)
         {
-            int vertexIndex = vertices.Count;
-            vertices.Add(Perturb(v1));
-            vertices.Add(Perturb(v2));
-            vertices.Add(Perturb(v3));
-            triangles.Add(vertexIndex);
-            triangles.Add(vertexIndex + 1);
-            triangles.Add(vertexIndex + 2);
+            int vertexIndex = _vertices.Count;
+            _vertices.Add(Perturb(v1));
+            _vertices.Add(Perturb(v2));
+            _vertices.Add(Perturb(v3));
+            _triangles.Add(vertexIndex);
+            _triangles.Add(vertexIndex + 1);
+            _triangles.Add(vertexIndex + 2);
         }
 
         private void AddTriangleUnperturbed(Vector3 v1, Vector3 v2, Vector3 v3)
         {
-            int vertexIndex = vertices.Count;
-            vertices.Add(v1);
-            vertices.Add(v2);
-            vertices.Add(v3);
-            triangles.Add(vertexIndex);
-            triangles.Add(vertexIndex + 1);
-            triangles.Add(vertexIndex + 2);
+            int vertexIndex = _vertices.Count;
+            _vertices.Add(v1);
+            _vertices.Add(v2);
+            _vertices.Add(v3);
+            _triangles.Add(vertexIndex);
+            _triangles.Add(vertexIndex + 1);
+            _triangles.Add(vertexIndex + 2);
         }
 
         private void AddTriangleColor(Color color)
         {
-            colors.Add(color);
-            colors.Add(color);
-            colors.Add(color);
+            _colors.Add(color);
+            _colors.Add(color);
+            _colors.Add(color);
         }
 
         private void AddTriangleColor(Color c1, Color c2, Color c3)
         {
-            colors.Add(c1);
-            colors.Add(c2);
-            colors.Add(c3);
+            _colors.Add(c1);
+            _colors.Add(c2);
+            _colors.Add(c3);
         }
 
         private void AddQuad(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4)
         {
-            int vertexIndex = vertices.Count;
-            vertices.Add(Perturb(v1));
-            vertices.Add(Perturb(v2));
-            vertices.Add(Perturb(v3));
-            vertices.Add(Perturb(v4));
-            triangles.Add(vertexIndex);
-            triangles.Add(vertexIndex + 2);
-            triangles.Add(vertexIndex + 1);
-            triangles.Add(vertexIndex + 1);
-            triangles.Add(vertexIndex + 2);
-            triangles.Add(vertexIndex + 3);
+            int vertexIndex = _vertices.Count;
+            _vertices.Add(Perturb(v1));
+            _vertices.Add(Perturb(v2));
+            _vertices.Add(Perturb(v3));
+            _vertices.Add(Perturb(v4));
+            _triangles.Add(vertexIndex);
+            _triangles.Add(vertexIndex + 2);
+            _triangles.Add(vertexIndex + 1);
+            _triangles.Add(vertexIndex + 1);
+            _triangles.Add(vertexIndex + 2);
+            _triangles.Add(vertexIndex + 3);
         }
 
         private void AddQuadColor(Color c1, Color c2)
         {
-            colors.Add(c1);
-            colors.Add(c1);
-            colors.Add(c2);
-            colors.Add(c2);
+            _colors.Add(c1);
+            _colors.Add(c1);
+            _colors.Add(c2);
+            _colors.Add(c2);
         }
 
         private void AddQuadColor(Color c1, Color c2, Color c3, Color c4)
         {
-            colors.Add(c1);
-            colors.Add(c2);
-            colors.Add(c3);
-            colors.Add(c4);
+            _colors.Add(c1);
+            _colors.Add(c2);
+            _colors.Add(c3);
+            _colors.Add(c4);
         }
 
         private Vector3 Perturb(Vector3 position)

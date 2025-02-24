@@ -1,4 +1,5 @@
-﻿using Sirenix.OdinInspector;
+﻿using System.Text;
+using Sirenix.OdinInspector;
 using Unity.Mathematics;
 using UnityEngine;
 namespace MapGenerationProject.DOTS
@@ -6,11 +7,19 @@ namespace MapGenerationProject.DOTS
     [System.Serializable]
     public struct HexCoordinates
     {
+        private static StringBuilder _stringBuilder;
+        
         public readonly int X;
         public readonly int Z;
         public readonly int Y { get { return -X - Z; } }
         
         [ShowInInspector, ReadOnly] public Vector3 CoordinateVector { get { return new Vector3(X, Y, Z); } }
+
+        [RuntimeInitializeOnLoadMethod]
+        private static void InitializeOnLoad()
+        {
+            _stringBuilder ??= new StringBuilder(32);
+        }
         
         public HexCoordinates(int x, int z) 
         {
@@ -73,12 +82,30 @@ namespace MapGenerationProject.DOTS
         
         public override string ToString() 
         {
-            return "(" + X + ", " + Y + ", " + Z + ")";
+            _stringBuilder.Clear();
+
+            _stringBuilder.Append('(');
+            _stringBuilder.Append(X);
+            _stringBuilder.Append(", ");
+            _stringBuilder.Append(Y);
+            _stringBuilder.Append(", ");
+            _stringBuilder.Append(Z);
+            _stringBuilder.Append(')');
+
+            return _stringBuilder.ToString();
         }
 
         public readonly string ToStringOnSeparateLines() 
         {
-            return X + "\n" + Y + "\n" + Z;
+            _stringBuilder.Clear();
+
+            _stringBuilder.Append(X);
+            _stringBuilder.Append('\n');
+            _stringBuilder.Append(Y);
+            _stringBuilder.Append('\n');
+            _stringBuilder.Append(Z);
+
+            return _stringBuilder.ToString();
         }
     }
 }
