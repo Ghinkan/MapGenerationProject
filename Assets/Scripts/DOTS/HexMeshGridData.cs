@@ -22,10 +22,6 @@ namespace MapGenerationProject.DOTS
             _verticesWriter = vertices.AsParallelWriter();
             _trianglesWriter = triangles.AsParallelWriter();
             _colorsWriter = colors.AsParallelWriter();
-            
-            // _verticesStream = new NativeStream();
-            // _trianglesStream = new NativeStream();
-            // _colorsStream = new NativeStream();
         }
         
         private Vector3 Perturb(Vector3 position)

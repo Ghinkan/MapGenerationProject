@@ -45,12 +45,12 @@ namespace MapGenerationProject.DOTS
             }
         }
         
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteWithIndex<T>(ref NativeStream.Writer writer, ref int vertexCounter, in T element) where T : unmanaged
-        {
-            int idx = Interlocked.Increment(ref vertexCounter) - 1;
-            writer.Write(element);
-            return idx;
-        }
+        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // public static int WriteWithIndex<T>(ref NativeStream.Writer writer, ref int vertexCounter, in T element) where T : unmanaged
+        // {
+        //     int idx = Interlocked.Increment(ref vertexCounter) - 1;
+        //     writer.Write(element);
+        //     return idx;
+        // }
     }
 }
