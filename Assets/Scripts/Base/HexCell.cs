@@ -6,7 +6,7 @@ namespace MapGenerationProject.Base
     {
         [HideLabel] public HexCoordinates coordinates;
         [SerializeField] private HexCell[] neighbors;
-        public Color color;
+        public HexGridChunk chunk;
         public RectTransform uiRect;
         
         public Vector3 Position 
@@ -14,12 +14,14 @@ namespace MapGenerationProject.Base
             get { return transform.localPosition; }
         }
         
-        private int elevation;
+        int elevation = int.MinValue;
         public int Elevation 
         {
             get { return elevation; }
             set
             {
+                if (elevation == value) return;
+                
                 elevation = value;
                 Vector3 position = transform.localPosition;
                 position.y = value * HexMetrics.elevationStep;
@@ -29,6 +31,19 @@ namespace MapGenerationProject.Base
                 Vector3 uiPosition = uiRect.localPosition;
                 uiPosition.z = -position.y;
                 uiRect.localPosition = uiPosition;
+                
+                Refresh();
+            }
+        }
+        
+        Color color;
+        public Color Color 
+        {
+            get { return color; }
+            set {
+                if (color == value) return;
+                color = value;
+                Refresh();
             }
         }
         
@@ -47,9 +62,25 @@ namespace MapGenerationProject.Base
         {
             return HexMetrics.GetEdgeType(elevation, neighbors[(int)direction].elevation);
         }
+        
         public HexEdgeType GetEdgeType(HexCell otherCell) 
         {
             return HexMetrics.GetEdgeType(elevation, otherCell.elevation);
+        }
+        
+        private void Refresh() 
+        {
+            if(!chunk) return;
+            chunk.Refresh();
+            for(int i = 0; i < neighbors.Length; i++) 
+            {
+                HexCell neighbor = neighbors[i];
+                if (neighbor && neighbor.chunk != chunk) 
+                {
+                    neighbor.chunk.Refresh();
+                }
+            }
+                
         }
     }
 }

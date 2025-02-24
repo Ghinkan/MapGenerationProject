@@ -4,17 +4,19 @@ namespace MapGenerationProject.Base
 {
     public class HexGrid : MonoBehaviour
     {
-        public int width = 6;
-        public int height = 6;
+        private int cellCountX = 5;
+        private int cellCountZ = 5;
+        
+        public int chunkCountX = 4;
+        public int chunkCountZ = 3;
 
         public HexCell cellPrefab;
+        public HexGridChunk chunkPrefab;
         
         HexCell[] cells;
+        HexGridChunk[] chunks;
         
         public TMP_Text cellLabelPrefab;
-
-        Canvas gridCanvas;
-        HexMesh hexMesh;
         
         public Color defaultColor = Color.white;
         
@@ -22,25 +24,39 @@ namespace MapGenerationProject.Base
 
         private void Awake() 
         {
-            gridCanvas = GetComponentInChildren<Canvas>();
-            hexMesh = GetComponentInChildren<HexMesh>();
             HexMetrics.noiseSource = noiseSource;
+
+            cellCountX = chunkCountX * HexMetrics.chunkSizeX;
+            cellCountZ = chunkCountZ * HexMetrics.chunkSizeZ;
+            CreateChunks();
+            CreateCells();
         }
         
-        private void Start() 
+        private void CreateChunks()
         {
-            cells = new HexCell[height * width];
-            int index = 0;
-            for (int z = 0; z < height; z++) 
+            chunks = new HexGridChunk[chunkCountX * chunkCountZ];
+
+            for(int z = 0, i = 0; z < chunkCountZ; z++) 
             {
-                for (int x = 0; x < width; x++) 
+                for (int x = 0; x < chunkCountX; x++) 
                 {
-                    CreateCell(x, z, index++);
+                    HexGridChunk chunk = chunks[i++] = Instantiate(chunkPrefab);
+                    chunk.transform.SetParent(transform);
                 }
             }
-            hexMesh.Triangulate(cells);
         }
-	
+
+        private void CreateCells() 
+        {
+            cells = new HexCell[cellCountZ * cellCountX];
+
+            for (int z = 0, i = 0; z < cellCountZ; z++) {
+                for (int x = 0; x < cellCountX; x++) {
+                    CreateCell(x, z, i++);
+                }
+            }
+        }
+        
         private void CreateCell(int x, int z, int index) 
         {
             Vector3 position;
@@ -49,10 +65,9 @@ namespace MapGenerationProject.Base
             position.z = z * (HexMetrics.OuterRadius * 1.5f);
 
             HexCell cell = cells[index] = Instantiate(cellPrefab);
-            cell.transform.SetParent(transform, false);
             cell.transform.localPosition = position;
             cell.coordinates = HexCoordinates.FromOffsetCoordinates(x, z);
-            cell.color = defaultColor;
+            cell.Color = defaultColor;
             
             if (x > 0) 
             {
@@ -62,41 +77,48 @@ namespace MapGenerationProject.Base
             {
                 if ((z & 1) == 0) 
                 {
-                    cell.SetNeighbor(HexDirection.SE, cells[index - width]);
+                    cell.SetNeighbor(HexDirection.SE, cells[index - cellCountX]);
                     if (x > 0) 
                     {
-                        cell.SetNeighbor(HexDirection.SW, cells[index - width - 1]);
+                        cell.SetNeighbor(HexDirection.SW, cells[index - cellCountX - 1]);
                     }
                 }
                 else 
                 {
-                    cell.SetNeighbor(HexDirection.SW, cells[index - width]);
-                    if (x < width - 1) 
+                    cell.SetNeighbor(HexDirection.SW, cells[index - cellCountX]);
+                    if (x < cellCountX - 1) 
                     {
-                        cell.SetNeighbor(HexDirection.SE, cells[index - width + 1]);
+                        cell.SetNeighbor(HexDirection.SE, cells[index - cellCountX + 1]);
                     }
                 }
             }
             
-            TMP_Text label = Instantiate(cellLabelPrefab, gridCanvas.transform, false);
+            TMP_Text label = Instantiate(cellLabelPrefab);
             label.rectTransform.anchoredPosition = new Vector2(position.x, position.z);
             label.text = cell.coordinates.ToStringOnSeparateLines();
             cell.uiRect = label.rectTransform;
             
             cell.Elevation = 0;
+            
+            AddCellToChunk(x, z, cell);
         }
         
+        private void AddCellToChunk(int x, int z, HexCell cell)
+        {
+            int chunkX = x / HexMetrics.chunkSizeX;
+            int chunkZ = z / HexMetrics.chunkSizeZ;
+            HexGridChunk chunk = chunks[chunkX + chunkZ * chunkCountX];
+            int localX = x - chunkX * HexMetrics.chunkSizeX;
+            int localZ = z - chunkZ * HexMetrics.chunkSizeZ;
+            chunk.AddCell(localX + localZ * HexMetrics.chunkSizeX, cell);
+        }
+
         public HexCell GetCell(Vector3 position) 
         {
             position = transform.InverseTransformPoint(position);
             HexCoordinates coordinates = HexCoordinates.FromPosition(position);
-            int index = coordinates.X + coordinates.Z * width + coordinates.Z / 2;
+            int index = coordinates.X + coordinates.Z * cellCountX + coordinates.Z / 2;
             return cells[index];
-        }
-        
-        public void Refresh() 
-        {
-            hexMesh.Triangulate(cells);
         }
     }
 }
