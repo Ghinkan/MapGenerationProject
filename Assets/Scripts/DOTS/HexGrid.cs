@@ -1,5 +1,6 @@
 ﻿using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
@@ -8,9 +9,13 @@ namespace MapGenerationProject.DOTS
 {
     public class HexGrid : MonoBehaviour
     {
+        public static NativeArray<ChunkData> Chunks;
         public static NativeArray<HexCellData> Cells;
+        
         [SerializeField] private VoidEventChannel _onGridCreated;
+        [SerializeField] private HexGridChunk _chunkPrefab;
         [SerializeField] private Texture2D _noiseSource;
+        
         private TextureData _noiseData;
         
         private void Awake()
@@ -26,9 +31,19 @@ namespace MapGenerationProject.DOTS
         
         private void Start() 
         {
+            const int chunkCount = HexMetrics.ChunkCountX * HexMetrics.ChunkCountZ;
+            
+            Chunks = new NativeArray<ChunkData>(chunkCount, Allocator.Persistent);
             Cells = new NativeArray<HexCellData>(HexMetrics.Width * HexMetrics.Height, Allocator.Persistent);
+            
+            for (int i = 0; i < chunkCount; i++)
+            {
+                Chunks[i] = new ChunkData(HexMetrics.ChunkCellSizeX * HexMetrics.ChunkCellSizeZ, Allocator.Persistent);
+            }
+
             GenerateHexGridJob generateHexGridJob = new GenerateHexGridJob
             {
+                JobChunks = Chunks,
                 JobCells = Cells,
                 Width = HexMetrics.Width,
                 TextureData = _noiseData,
@@ -36,11 +51,30 @@ namespace MapGenerationProject.DOTS
             JobHandle generateHexGridHandle = generateHexGridJob.Schedule(Cells.Length, 64);
             generateHexGridHandle.Complete();
             
+             CreateChunks();
+             
             _onGridCreated.RaiseEvent();
+        }
+
+        private void CreateChunks()
+        {
+            for (int z = 0, i = 0; z < HexMetrics.ChunkCountZ; z++)
+            {
+                for (int x = 0; x < HexMetrics.ChunkCountX; x++)
+                {
+                    HexGridChunk chunk = Instantiate(_chunkPrefab, transform);
+                    chunk.Chunk = Chunks[i++];
+                }
+            }
         }
         
         private void OnDestroy()
         {
+            for (int i = 0; i < Chunks.Length; i++)
+            {
+                Chunks[i].Dispose();
+            }
+            Chunks.Dispose();
             Cells.Dispose();
             _noiseData.Dispose();
         }
@@ -48,16 +82,20 @@ namespace MapGenerationProject.DOTS
         [BurstCompile]
         private struct GenerateHexGridJob : IJobParallelFor
         {
-            [ReadOnly] public TextureData TextureData;
+            [ReadOnly] public TextureData TextureData; 
+            [ReadOnly] public int Width;
+
+            [NativeDisableContainerSafetyRestriction]public NativeArray<ChunkData> JobChunks;
             [WriteOnly] public NativeArray<HexCellData> JobCells;
-            public int Width;
 
             public void Execute(int index)
             {
                 int z = index / Width;
                 int x = index % Width;
-
-                JobCells[index] = CreateCell(x, z);
+                
+                HexCellData cell = CreateCell(x, z);
+                JobCells[index] = cell;
+                AddCellToChunk(x, z, cell);
             }
         
             private HexCellData CreateCell(int x, int z) 
@@ -78,9 +116,26 @@ namespace MapGenerationProject.DOTS
                 position.y = 0 * HexMetrics.ElevationStep;
                 position.y += (sample.y * 2f - 1f) * HexMetrics.ElevationPerturbStrength;
                 cell.SetElevation(0, position);
-                
+
+                AddCellToChunk(x, z, cell);
                 return cell;
             } 
+            
+            private void AddCellToChunk(int x, int z, HexCellData cell)
+            {
+                int chunkX = x / HexMetrics.ChunkCellSizeX;
+                int chunkZ = z / HexMetrics.ChunkCellSizeZ;
+                int chunkIndex = chunkX + chunkZ * HexMetrics.ChunkCountX;
+                
+                ChunkData chunk = JobChunks[chunkX + chunkZ * HexMetrics.ChunkCountX];
+                
+                int localX = x - chunkX * HexMetrics.ChunkCellSizeX;
+                int localZ = z - chunkZ * HexMetrics.ChunkCellSizeZ;
+                int localIndex = localX + localZ * HexMetrics.ChunkCellSizeX;
+
+                chunk.Cells[localIndex] = cell;
+                JobChunks[chunkIndex] = chunk;
+            }
         } 
     }
 }

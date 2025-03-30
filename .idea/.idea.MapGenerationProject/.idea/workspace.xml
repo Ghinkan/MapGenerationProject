@@ -8,17 +8,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8ca4c1a5-bc4d-456f-ab5a-b9057dd8cf83" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/Base/HexGridChunk.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/Base/HexGridChunk.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/ChunkData.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/ChunkData.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexGridChunk.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexGridChunk.cs.meta" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MapGenerationProject/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MapGenerationProject/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/HexCellLabel.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefabs/HexCellLabel.prefab" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scenes/MapGenerationBase.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/MapGenerationBase.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Base/HexCell.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Base/HexCell.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Base/HexCoordinates.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Base/HexCoordinates.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Base/HexGrid.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Base/HexGrid.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Base/HexMapEditor.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Base/HexMapEditor.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Base/HexMesh.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Base/HexMesh.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Base/HexMetrics.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Base/HexMetrics.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scenes/MapGenerationJobs.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/MapGenerationJobs.unity" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexGrid.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexGrid.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexMesh.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexMesh.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexMetrics.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexMetrics.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Packages/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/Packages/manifest.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Packages/packages-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Packages/packages-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProjectSettings/Physics2DSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/Physics2DSettings.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProjectSettings/ProjectSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/ProjectSettings.asset" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,6 +36,7 @@
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/44f3679c53d1477a9c6e72f269e3a3a91de200/38/4d8168ca/IJobParallelFor.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/44f3679c53d1477a9c6e72f269e3a3a91de200/98/bba40997/Texture2D.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/DOTS/ChunkData.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
@@ -58,6 +61,7 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -130,6 +134,10 @@
       <workItem from="1738512780012" duration="3522000" />
       <workItem from="1738525679974" duration="1361000" />
       <workItem from="1740392490609" duration="7484000" />
+      <workItem from="1743238968913" duration="39000" />
+      <workItem from="1743239025269" duration="3267000" />
+      <workItem from="1743242627753" duration="7732000" />
+      <workItem from="1743332172693" duration="2047000" />
     </task>
     <servers />
   </component>

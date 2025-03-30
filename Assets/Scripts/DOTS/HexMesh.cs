@@ -57,7 +57,7 @@ namespace MapGenerationProject.DOTS
                 MeshGridData = _meshGridData,
             };
 
-            JobHandle generateCenterHexMeshDataHandle = generateCenterHexMeshJob.Schedule(cells.Length, 64); // 64 cells
+            JobHandle generateCenterHexMeshDataHandle = generateCenterHexMeshJob.Schedule(cells.Length, 512); // 64 cells
             generateCenterHexMeshDataHandle.Complete();
             
             _hexMesh.SetVertices(_vertices.AsArray());
