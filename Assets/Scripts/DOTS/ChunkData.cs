@@ -3,17 +3,19 @@ namespace MapGenerationProject.DOTS
 {
     public struct ChunkData
     {
-        public NativeArray<HexCellData> Cells;
+        public NativeArray<int> CellsIndex;
+        public int ChunkIndex;
 
         public ChunkData(int cellCount, Allocator allocator)
         {
-            Cells = new NativeArray<HexCellData>(cellCount, allocator);
+            CellsIndex = new NativeArray<int>(cellCount, allocator);
+            ChunkIndex = 0;
         }
 
         public void Dispose()
         {
-            if (Cells.IsCreated)
-                Cells.Dispose();
+            if (CellsIndex.IsCreated)
+                CellsIndex.Dispose();
         }
     }
 }

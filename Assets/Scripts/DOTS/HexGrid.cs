@@ -63,7 +63,7 @@ namespace MapGenerationProject.DOTS
                 for (int x = 0; x < HexMetrics.ChunkCountX; x++)
                 {
                     HexGridChunk chunk = Instantiate(_chunkPrefab, transform);
-                    chunk.Chunk = Chunks[i++];
+                    chunk.ChunkData = Chunks[i++];
                 }
             }
         }
@@ -95,7 +95,7 @@ namespace MapGenerationProject.DOTS
                 
                 HexCellData cell = CreateCell(x, z);
                 JobCells[index] = cell;
-                AddCellToChunk(x, z, cell);
+                AddCellToChunk(x, z, index);
             }
         
             private HexCellData CreateCell(int x, int z) 
@@ -116,12 +116,11 @@ namespace MapGenerationProject.DOTS
                 position.y = 0 * HexMetrics.ElevationStep;
                 position.y += (sample.y * 2f - 1f) * HexMetrics.ElevationPerturbStrength;
                 cell.SetElevation(0, position);
-
-                AddCellToChunk(x, z, cell);
+                
                 return cell;
             } 
             
-            private void AddCellToChunk(int x, int z, HexCellData cell)
+            private void AddCellToChunk(int x, int z, int index)
             {
                 int chunkX = x / HexMetrics.ChunkCellSizeX;
                 int chunkZ = z / HexMetrics.ChunkCellSizeZ;
@@ -133,7 +132,9 @@ namespace MapGenerationProject.DOTS
                 int localZ = z - chunkZ * HexMetrics.ChunkCellSizeZ;
                 int localIndex = localX + localZ * HexMetrics.ChunkCellSizeX;
 
-                chunk.Cells[localIndex] = cell;
+                chunk.CellsIndex[localIndex] = index;
+                chunk.ChunkIndex = chunkIndex;
+
                 JobChunks[chunkIndex] = chunk;
             }
         } 

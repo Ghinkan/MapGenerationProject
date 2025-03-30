@@ -10,6 +10,7 @@ namespace MapGenerationProject.DOTS
     {
         [SerializeField] private VoidEventChannel _onGridCreated;
         [SerializeField] private VoidEventChannel _refreshMesh;
+        [SerializeField] private HexGridChunk _chunk;
 
         private Mesh _hexMesh;
         private MeshCollider _meshCollider;
@@ -24,7 +25,7 @@ namespace MapGenerationProject.DOTS
             _meshCollider = GetComponent<MeshCollider>();
             _hexMesh.name = "Hex Mesh";
         }
-
+        
         private void OnEnable()
         {
             _onGridCreated.GameEvent += Triangulate;
@@ -42,6 +43,7 @@ namespace MapGenerationProject.DOTS
             _hexMesh.Clear();
             
             NativeArray<HexCellData> cells = HexGrid.Cells;
+            
             int estimatedVertices = cells.Length * 200;
             int estimatedTriangles = cells.Length * 250;
             int estimatedColors = estimatedVertices;
@@ -54,10 +56,11 @@ namespace MapGenerationProject.DOTS
             GenerateCenterHexMeshJob generateCenterHexMeshJob = new GenerateCenterHexMeshJob 
             {
                 Cells = cells,
+                ChunkData = _chunk.ChunkData,
                 MeshGridData = _meshGridData,
             };
-
-            JobHandle generateCenterHexMeshDataHandle = generateCenterHexMeshJob.Schedule(cells.Length, 512); // 64 cells
+            
+            JobHandle generateCenterHexMeshDataHandle = generateCenterHexMeshJob.Schedule(_chunk.ChunkData.CellsIndex.Length, 64);
             generateCenterHexMeshDataHandle.Complete();
             
             _hexMesh.SetVertices(_vertices.AsArray());
@@ -81,10 +84,13 @@ namespace MapGenerationProject.DOTS
         private struct GenerateCenterHexMeshJob : IJobParallelFor
         {
             [ReadOnly] public NativeArray<HexCellData> Cells;
+            [ReadOnly] public ChunkData ChunkData;
             public HexMeshGridData MeshGridData;
             
             public void Execute(int index)
             {
+                index = ChunkData.CellsIndex[index];
+                
                 HexCellData cell = Cells[index];
                 Vector3 center = cell.Position;
 

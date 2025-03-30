@@ -3,6 +3,6 @@ namespace MapGenerationProject.DOTS
 {
     public class HexGridChunk : MonoBehaviour
     {
-        public ChunkData Chunk;
+        public ChunkData ChunkData;
     }
 }
