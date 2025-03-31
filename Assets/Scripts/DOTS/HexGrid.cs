@@ -1,4 +1,5 @@
-﻿using Unity.Burst;
+﻿using System.Runtime.CompilerServices;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
@@ -71,9 +72,8 @@ namespace MapGenerationProject.DOTS
         private void OnDestroy()
         {
             for (int i = 0; i < Chunks.Length; i++)
-            {
                 Chunks[i].Dispose();
-            }
+            
             Chunks.Dispose();
             Cells.Dispose();
             _noiseData.Dispose();
@@ -85,7 +85,7 @@ namespace MapGenerationProject.DOTS
             [ReadOnly] public TextureData TextureData; 
             [ReadOnly] public int Width;
 
-            [NativeDisableContainerSafetyRestriction]public NativeArray<ChunkData> JobChunks;
+            [NativeDisableContainerSafetyRestriction] public NativeArray<ChunkData> JobChunks;
             [WriteOnly] public NativeArray<HexCellData> JobCells;
 
             public void Execute(int index)
@@ -93,15 +93,21 @@ namespace MapGenerationProject.DOTS
                 int z = index / Width;
                 int x = index % Width;
                 
-                HexCellData cell = CreateCell(x, z);
+                int chunkX = x / HexMetrics.ChunkCellSizeX;
+                int chunkZ = z / HexMetrics.ChunkCellSizeZ;
+                int chunkIndex = chunkX + chunkZ * HexMetrics.ChunkCountX;
+                
+                HexCellData cell = CreateCell(x, z, chunkIndex);
                 JobCells[index] = cell;
-                AddCellToChunk(x, z, index);
+                AddCellToChunk(x, z, index, chunkIndex);
             }
         
-            private HexCellData CreateCell(int x, int z) 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private HexCellData CreateCell(int x, int z, int chunkIndex) 
             {
                 float3 position;
-                position.x = (x + z * 0.5f - z / 2) * (HexMetrics.InnerRadius * 2f);
+                float xOffset = (x + z * 0.5f - z / 2);
+                position.x = xOffset * (HexMetrics.InnerRadius * 2f);
                 position.y = 0f;
                 position.z = z * (HexMetrics.OuterRadius * 1.5f);
                 
@@ -110,31 +116,28 @@ namespace MapGenerationProject.DOTS
                     Coordinates = HexCoordinates.FromOffsetCoordinates(x, z),
                     Position = position,
                     Color = Color.white,
+                    ChunkIndex = chunkIndex,
                 };
                 
                 Vector4 sample = HexMetrics.SampleNoise(position, TextureData);
-                position.y = 0 * HexMetrics.ElevationStep;
                 position.y += (sample.y * 2f - 1f) * HexMetrics.ElevationPerturbStrength;
                 cell.SetElevation(0, position);
                 
                 return cell;
             } 
             
-            private void AddCellToChunk(int x, int z, int index)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void AddCellToChunk(int x, int z, int index, int chunkIndex)
             {
-                int chunkX = x / HexMetrics.ChunkCellSizeX;
-                int chunkZ = z / HexMetrics.ChunkCellSizeZ;
-                int chunkIndex = chunkX + chunkZ * HexMetrics.ChunkCountX;
+                ChunkData chunk = JobChunks[chunkIndex];
                 
-                ChunkData chunk = JobChunks[chunkX + chunkZ * HexMetrics.ChunkCountX];
-                
-                int localX = x - chunkX * HexMetrics.ChunkCellSizeX;
-                int localZ = z - chunkZ * HexMetrics.ChunkCellSizeZ;
+                int localX = x % HexMetrics.ChunkCellSizeX;
+                int localZ = z % HexMetrics.ChunkCellSizeZ;
                 int localIndex = localX + localZ * HexMetrics.ChunkCellSizeX;
-
+                
                 chunk.CellsIndex[localIndex] = index;
                 chunk.ChunkIndex = chunkIndex;
-
+                
                 JobChunks[chunkIndex] = chunk;
             }
         } 

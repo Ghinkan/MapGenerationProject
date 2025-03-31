@@ -3,15 +3,10 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.EventChannels;
 namespace MapGenerationProject.DOTS
 {
     public class HexMesh : MonoBehaviour
     {
-        [SerializeField] private VoidEventChannel _onGridCreated;
-        [SerializeField] private VoidEventChannel _refreshMesh;
-        [SerializeField] private HexGridChunk _chunk;
-
         private Mesh _hexMesh;
         private MeshCollider _meshCollider;
         private HexMeshGridData _meshGridData;
@@ -25,20 +20,8 @@ namespace MapGenerationProject.DOTS
             _meshCollider = GetComponent<MeshCollider>();
             _hexMesh.name = "Hex Mesh";
         }
-        
-        private void OnEnable()
-        {
-            _onGridCreated.GameEvent += Triangulate;
-            _refreshMesh.GameEvent += Triangulate;
-        }
 
-        private void OnDisable()
-        {
-            _onGridCreated.GameEvent -= Triangulate;
-            _refreshMesh.GameEvent -= Triangulate;
-        }
-
-        private void Triangulate()
+        public void TriangulateChunk(ChunkData chunkData)
         {
             _hexMesh.Clear();
             
@@ -56,11 +39,11 @@ namespace MapGenerationProject.DOTS
             GenerateCenterHexMeshJob generateCenterHexMeshJob = new GenerateCenterHexMeshJob 
             {
                 Cells = cells,
-                ChunkData = _chunk.ChunkData,
+                ChunkData = chunkData,
                 MeshGridData = _meshGridData,
             };
             
-            JobHandle generateCenterHexMeshDataHandle = generateCenterHexMeshJob.Schedule(_chunk.ChunkData.CellsIndex.Length, 64);
+            JobHandle generateCenterHexMeshDataHandle = generateCenterHexMeshJob.Schedule(chunkData.CellsIndex.Length, 64);
             generateCenterHexMeshDataHandle.Complete();
             
             _hexMesh.SetVertices(_vertices.AsArray());
@@ -103,7 +86,6 @@ namespace MapGenerationProject.DOTS
                     if (direction <= HexDirection.SE)
                         TriangulateConnection(cell, direction, e);
                 }
-
             }
 
             private void TriangulateConnection(HexCellData cell, HexDirection direction, EdgeVertices e1)

@@ -7,6 +7,7 @@ namespace MapGenerationProject.DOTS
     {
         [SerializeField] private VoidEventChannel _onGridCreated;
         [SerializeField] private IntEventChannel _hexSelected;
+        [SerializeField] private HexGridChunk _chunk;
         [SerializeField] private TMP_Text _cellLabelPrefab;
 
         private Canvas _gridCanvas;
@@ -31,10 +32,12 @@ namespace MapGenerationProject.DOTS
         
         private void InstantiateCellLabels()
         {
-            _cellLabels = new TMP_Text[HexGrid.Cells.Length];
-            for (int i = 0; i < HexGrid.Cells.Length; i++)
+            int chunkSize = _chunk.ChunkData.CellsIndex.Length;
+            _cellLabels = new TMP_Text[chunkSize];
+            for (int i = 0; i < chunkSize; i++)
             {
-                HexCellData hexCellData = HexGrid.Cells[i];
+                int cellIndex = _chunk.ChunkData.CellsIndex[i];
+                HexCellData hexCellData = HexGrid.Cells[cellIndex];
                 TMP_Text label = Instantiate(_cellLabelPrefab, _gridCanvas.transform, false);
                 label.rectTransform.anchoredPosition = new Vector2(hexCellData.Position.x, hexCellData.Position.z);
                 label.text = hexCellData.Coordinates.ToStringOnSeparateLines();
@@ -44,9 +47,16 @@ namespace MapGenerationProject.DOTS
 
         private void RefreshLabelPosition(int index)
         {
-            Vector3 uiPosition = _cellLabels[index].rectTransform.localPosition;
-            uiPosition.z = HexGrid.Cells[index].Elevation * -HexMetrics.ElevationStep;
-            _cellLabels[index].rectTransform.localPosition = uiPosition;
+            for (int i = 0; i < _chunk.ChunkData.CellsIndex.Length; i++)
+            {
+                if (index == _chunk.ChunkData.CellsIndex[i])
+                {
+                    Vector3 uiPosition = _cellLabels[i].rectTransform.localPosition;
+                    uiPosition.z = HexGrid.Cells[index].Elevation * -HexMetrics.ElevationStep;
+                    _cellLabels[i].rectTransform.localPosition = uiPosition;
+                    break;
+                }
+            }
         }
     }
 }

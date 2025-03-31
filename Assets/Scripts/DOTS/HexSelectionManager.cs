@@ -6,12 +6,13 @@ namespace MapGenerationProject.DOTS
     public class HexSelectionManager : MonoBehaviour
     {
         [SerializeField] private IntEventChannel _hexSelected;
-        [SerializeField] private VoidEventChannel _refreshMesh;
+        [SerializeField] private IntEventChannel _refreshChunkMesh;
         [SerializeField] private Color[] _colors;
         private int _activeElevation;
         
         private Camera _camera;
         private Color _activeColor;
+        private HexCoordinates? _lastEditedCellCoordinates;
         
         private void Awake()
         {
@@ -25,15 +26,24 @@ namespace MapGenerationProject.DOTS
             {
                 HandleInput();
             }
+            if (Input.GetMouseButtonUp(0))
+            {
+                _lastEditedCellCoordinates = null;
+            }
         }
 
         private void HandleInput() 
         {
             Ray inputRay = _camera.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(inputRay, out RaycastHit hit)) 
+            if (Physics.Raycast(inputRay, out RaycastHit hit))
             {
-                HexCoordinates coordinates = HexCoordinates.FromPosition(hit.point);
-                EditCell(coordinates);
+                HexCoordinates editCellCoordinates = HexCoordinates.FromPosition(hit.point);
+                
+                if (!_lastEditedCellCoordinates.Equals(editCellCoordinates))
+                {
+                    EditCell(editCellCoordinates);
+                    _lastEditedCellCoordinates = editCellCoordinates;
+                }
             }
         }
         
@@ -52,7 +62,7 @@ namespace MapGenerationProject.DOTS
 
             HexGrid.Cells[index] = cell;
             _hexSelected.RaiseEvent(index);
-            _refreshMesh.RaiseEvent();
+            _refreshChunkMesh.RaiseEvent(cell.ChunkIndex);
         }
         
         public void SelectColor(int index) 

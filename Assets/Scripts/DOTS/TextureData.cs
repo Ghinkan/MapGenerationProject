@@ -1,8 +1,9 @@
-﻿using Unity.Collections;
+﻿using System;
+using Unity.Collections;
 using UnityEngine;
 namespace MapGenerationProject.DOTS
 {
-    public struct TextureData
+    public struct TextureData: IDisposable
     {
         public NativeArray<Color32> Colors;
         public readonly int Width;
@@ -18,9 +19,7 @@ namespace MapGenerationProject.DOTS
         public void Dispose()
         {
             if (Colors.IsCreated)
-            {
                 Colors.Dispose();
-            }
         }
     }
 }

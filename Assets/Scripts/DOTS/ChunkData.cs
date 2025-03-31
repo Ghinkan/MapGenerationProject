@@ -1,7 +1,8 @@
-﻿using Unity.Collections;
+﻿using System;
+using Unity.Collections;
 namespace MapGenerationProject.DOTS
 {
-    public struct ChunkData
+    public struct ChunkData: IDisposable
     {
         public NativeArray<int> CellsIndex;
         public int ChunkIndex;

@@ -2610,7 +2610,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _hexSelected: {fileID: 11400000, guid: 3acda3bc2aa4b634d8b01d4e5e9aa016, type: 2}
-  _refreshMesh: {fileID: 11400000, guid: 0ec43c76f3f5c0b439a63a78945206e9, type: 2}
+  _refreshChunkMesh: {fileID: 11400000, guid: a4d70f0a4917cea418f04e3907880119, type: 2}
   _colors:
   - {r: 0.9686275, g: 0.86666673, b: 0, a: 1}
   - {r: 0.30588236, g: 0.67058825, b: 0, a: 1}

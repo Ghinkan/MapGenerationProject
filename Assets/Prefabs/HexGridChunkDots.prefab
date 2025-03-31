@@ -123,7 +123,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _onGridCreated: {fileID: 11400000, guid: 75884a3a93daff241a6b4fb88c64974c, type: 2}
-  _refreshMesh: {fileID: 11400000, guid: 0ec43c76f3f5c0b439a63a78945206e9, type: 2}
+  _refreshChunkMesh: {fileID: 11400000, guid: a4d70f0a4917cea418f04e3907880119, type: 2}
   _chunk: {fileID: 3181818333572803397}
 --- !u!1 &3973177390236261104
 GameObject:
@@ -171,6 +171,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3691c81a050b47d89b34fd0bf9a9ec55, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _hexMesh: {fileID: 3660708338765192098}
+  _hexSelected: {fileID: 11400000, guid: 3acda3bc2aa4b634d8b01d4e5e9aa016, type: 2}
+  _refreshChunkMesh: {fileID: 11400000, guid: a4d70f0a4917cea418f04e3907880119, type: 2}
 --- !u!1 &6108650462981593416
 GameObject:
   m_ObjectHideFlags: 0
@@ -182,6 +185,7 @@ GameObject:
   - component: {fileID: 5438312076451867308}
   - component: {fileID: 4632076265069142218}
   - component: {fileID: 3648852332281244463}
+  - component: {fileID: 1548598759835006857}
   m_Layer: 0
   m_Name: HexGridCanvas
   m_TagString: Untagged
@@ -254,3 +258,19 @@ MonoBehaviour:
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 10
   m_PresetInfoIsWorld: 1
+--- !u!114 &1548598759835006857
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6108650462981593416}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 739d43c1d99e426a9964379bfa5de6d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _onGridCreated: {fileID: 11400000, guid: 75884a3a93daff241a6b4fb88c64974c, type: 2}
+  _hexSelected: {fileID: 11400000, guid: 3acda3bc2aa4b634d8b01d4e5e9aa016, type: 2}
+  _chunk: {fileID: 3181818333572803397}
+  _cellLabelPrefab: {fileID: 6246682688494152822, guid: baf90fc11f8f0ad4990907cd6c139cd4, type: 3}

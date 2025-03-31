@@ -1,11 +1,11 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using Sirenix.OdinInspector;
 using Unity.Mathematics;
 using UnityEngine;
 namespace MapGenerationProject.DOTS
 {
-    [System.Serializable]
-    public struct HexCoordinates
+    public struct HexCoordinates : IEquatable<HexCoordinates>
     {
         private static StringBuilder _stringBuilder;
         
@@ -106,6 +106,21 @@ namespace MapGenerationProject.DOTS
             _stringBuilder.Append(Z);
 
             return _stringBuilder.ToString();
+        }
+        
+        public bool Equals(HexCoordinates other)
+        {
+            return X == other.X && Z == other.Z;
+        }
+        
+        public override bool Equals(object obj)
+        {
+            return obj is HexCoordinates other && Equals(other);
+        }
+        
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(X, Z);
         }
     }
 }

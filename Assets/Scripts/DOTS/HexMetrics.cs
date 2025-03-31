@@ -139,5 +139,22 @@ namespace MapGenerationProject.DOTS
             cell = cells[x + z * Width];
             return true;
         }
+
+        public static NativeArray<HexCellData> GetNeighbors(NativeArray<HexCellData> cells, HexCellData cell)
+        {
+            NativeArray<HexCellData> neighbors = new NativeArray<HexCellData>(6, Allocator.Temp);
+            int i = 0;
+            
+            for (HexDirection direction = HexDirection.NE; direction <= HexDirection.NW; direction++)
+            {
+                if (TryGetCell(cells, cell.Coordinates.Step(direction), out HexCellData neighbor))
+                {
+                    neighbors[i] = neighbor;
+                    i++;
+                }
+            }
+            
+            return neighbors;
+        }
     }
 }
