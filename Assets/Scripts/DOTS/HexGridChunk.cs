@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.Collections;
+using UnityEngine;
 using UnityEngine.EventChannels;
 namespace MapGenerationProject.DOTS
 {
@@ -31,12 +32,23 @@ namespace MapGenerationProject.DOTS
         private void Refresh(int cellIndex)
         {
             if (HexGrid.Cells[cellIndex].ChunkIndex == ChunkData.ChunkIndex)
+            {
                 _refreshChunkMesh.RaiseEvent(ChunkData.ChunkIndex);
+                
+                NativeArray<HexCellData> neighbors = HexMetrics.GetNeighbors(HexGrid.Cells, HexGrid.Cells[cellIndex]);
+                foreach (HexCellData neighbor in neighbors)
+                {
+                    if(neighbor.ChunkIndex != ChunkData.ChunkIndex)
+                        _refreshChunkMesh.RaiseEvent(neighbor.ChunkIndex);
+                }
+                neighbors.Dispose();
+            }
         }
 
         private void RefreshChunk(int chunkIndex)
         {
-            enabled = true;
+            if (ChunkData.ChunkIndex == chunkIndex)
+                enabled = true;
         }
     }
 }
