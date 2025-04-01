@@ -7,8 +7,8 @@ namespace MapGenerationProject.Base
 		public const float OuterRadius = 10f;
 		public const float InnerRadius = OuterRadius * 0.866025404f;
 
-		public const int chunkSizeX = 5;
-		public const int chunkSizeZ = 5;
+		public const int chunkSizeX = 8;
+		public const int chunkSizeZ = 8;
 		
 		public const float elevationStep = 3f;
 		public const int terracesPerSlope = 2;

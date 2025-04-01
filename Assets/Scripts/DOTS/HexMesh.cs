@@ -46,6 +46,7 @@ namespace MapGenerationProject.DOTS
             JobHandle generateCenterHexMeshDataHandle = generateCenterHexMeshJob.Schedule(chunkData.CellsIndex.Length, 64);
             generateCenterHexMeshDataHandle.Complete();
             
+            //TODO: utilizar nueva API MeshData para asignar vertices.
             _hexMesh.SetVertices(_vertices.AsArray());
             _hexMesh.SetTriangles(_triangles.AsArray().ToArray(), 0);
             _hexMesh.SetColors(_colors.AsArray());
