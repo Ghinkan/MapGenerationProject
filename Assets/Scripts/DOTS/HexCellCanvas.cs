@@ -7,6 +7,7 @@ namespace MapGenerationProject.DOTS
     {
         [SerializeField] private VoidEventChannel _onGridCreated;
         [SerializeField] private IntEventChannel _hexSelected;
+        [SerializeField] private BoolEventChannel _showLabels;
         [SerializeField] private HexGridChunk _chunk;
         [SerializeField] private TMP_Text _cellLabelPrefab;
 
@@ -16,18 +17,18 @@ namespace MapGenerationProject.DOTS
         private void Awake()
         {
             _gridCanvas = GetComponent<Canvas>();
-        }
-
-        private void OnEnable()
-        {
+            _gridCanvas.enabled = false;
+            
             _onGridCreated.GameEvent += InstantiateCellLabels;
             _hexSelected.GameEvent += RefreshLabelPosition;
+            _showLabels.GameEvent += ShowUI;
         }
         
-        private void OnDisable()
+        private void OnDestroy()
         {
             _onGridCreated.GameEvent -= InstantiateCellLabels;
             _hexSelected.GameEvent -= RefreshLabelPosition;
+            _showLabels.GameEvent -= ShowUI;
         }
         
         private void InstantiateCellLabels()
@@ -57,6 +58,11 @@ namespace MapGenerationProject.DOTS
                     break;
                 }
             }
+        }
+        
+        private void ShowUI(bool visible)
+        {
+            _gridCanvas.enabled = visible;
         }
     }
 }

@@ -122,9 +122,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f197c4ce8904e6c84d1d3a9aa32099a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _onGridCreated: {fileID: 11400000, guid: 75884a3a93daff241a6b4fb88c64974c, type: 2}
-  _refreshChunkMesh: {fileID: 11400000, guid: a4d70f0a4917cea418f04e3907880119, type: 2}
-  _chunk: {fileID: 3181818333572803397}
 --- !u!1 &3973177390236261104
 GameObject:
   m_ObjectHideFlags: 0
@@ -272,5 +269,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _onGridCreated: {fileID: 11400000, guid: 75884a3a93daff241a6b4fb88c64974c, type: 2}
   _hexSelected: {fileID: 11400000, guid: 3acda3bc2aa4b634d8b01d4e5e9aa016, type: 2}
+  _showLabels: {fileID: 11400000, guid: d7fd5afb716bcb344a7066a813b4b77f, type: 2}
   _chunk: {fileID: 3181818333572803397}
   _cellLabelPrefab: {fileID: 6246682688494152822, guid: baf90fc11f8f0ad4990907cd6c139cd4, type: 3}
