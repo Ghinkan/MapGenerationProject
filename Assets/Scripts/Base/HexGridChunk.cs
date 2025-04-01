@@ -14,6 +14,7 @@ namespace MapGenerationProject.Base
             hexMesh = GetComponentInChildren<HexMesh>();
 
             cells = new HexCell[HexMetrics.chunkSizeX * HexMetrics.chunkSizeZ];
+            ShowUI(false);
         }
         
         private void LateUpdate() 
@@ -33,6 +34,11 @@ namespace MapGenerationProject.Base
         public void Refresh() 
         {
             enabled = true;
+        }
+        
+        public void ShowUI (bool visible)
+        {
+            gridCanvas.gameObject.SetActive(visible);
         }
     }
 }

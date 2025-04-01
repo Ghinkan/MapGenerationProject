@@ -20,6 +20,9 @@ namespace MapGenerationProject
         {
             swivel = transform.GetChild(0);
             stick = swivel.GetChild(0);
+            
+            float initialZ = stick.localPosition.z;
+            zoom = Mathf.InverseLerp(stickMinZoom, stickMaxZoom, initialZ);
         }
         
         private void Update()
