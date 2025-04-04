@@ -18,7 +18,6 @@ This project is currently under active development and includes both faithful re
 - Learn and replicate the fundamentals of procedural hex map generation
 - Explore Unity’s Data-Oriented Technology Stack (DOTS)
 - Make the system scalable and performant for large maps
-- Add this project to my portfolio as a demonstration of clean, modular and optimized code
 
 ## Resources
 
