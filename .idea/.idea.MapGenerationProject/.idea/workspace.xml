@@ -9,11 +9,7 @@
   <component name="ChangeListManager">
     <list default="true" id="8ca4c1a5-bc4d-456f-ab5a-b9057dd8cf83" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MapGenerationProject/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MapGenerationProject/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/HexGridChunkDots.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefabs/HexGridChunkDots.prefab" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scenes/MapGenerationBase.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/MapGenerationBase.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scenes/MapGenerationJobs.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/MapGenerationJobs.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexCellCanvas.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexCellCanvas.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexSelectionManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexSelectionManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexMapCamera.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/DOTS/HexMapCamera.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -141,6 +137,8 @@
       <workItem from="1743404215839" duration="10801000" />
       <workItem from="1743496467255" duration="2075000" />
       <workItem from="1743498967301" duration="11060000" />
+      <workItem from="1745163362612" duration="41000" />
+      <workItem from="1745163453026" duration="685000" />
     </task>
     <servers />
   </component>
