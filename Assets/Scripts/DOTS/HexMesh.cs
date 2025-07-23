@@ -99,7 +99,9 @@ namespace MapGenerationProject.DOTS
 
             // Aplicar y reemplazar el mesh
             Mesh.ApplyAndDisposeWritableMeshData(meshDataArray, _hexMesh, MeshUpdateFlags.DontRecalculateBounds);
+            _hexMesh.RecalculateBounds();
             _hexMesh.RecalculateNormals();
+            
             _meshCollider.sharedMesh = _hexMesh;
         }
         
