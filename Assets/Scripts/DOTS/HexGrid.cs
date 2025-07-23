@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -8,7 +9,7 @@ using UnityEngine;
 using UnityEngine.EventChannels;
 namespace MapGenerationProject.DOTS
 {
-    public class HexGrid : MonoBehaviour
+    public class HexGrid : MonoBehaviour, IDisposable
     {
         private const int ChunkCount = HexMetrics.ChunkCountX * HexMetrics.ChunkCountZ;
         public static NativeArray<ChunkData> Chunks;
@@ -74,6 +75,11 @@ namespace MapGenerationProject.DOTS
         }
         
         private void OnDestroy()
+        {
+            Dispose();
+        }
+        
+        public void Dispose()
         {
             for (int i = 0; i < Chunks.Length; i++)
                 Chunks[i].Dispose();
