@@ -12,50 +12,73 @@ namespace MapGenerationProject.DOTS
         [SerializeField] private MeshCollider _meshCollider;
         
         private Mesh _hexMesh;
+        private NativeArray<HexCellData> _cells;
         private HexMeshGridData _meshGridData;
         private NativeList<Vector3> _vertices;
         private NativeList<int> _triangles;
         private NativeList<Color> _colors;
+        private bool _isInitialized;
         
         private void Awake()
         {
             _hexMesh = new Mesh { name = "Hex Mesh"};
             _meshFilter.mesh = _hexMesh;
+
+            InitializeMeshData();
+        }
+        
+        private void InitializeMeshData()
+        {
+            _cells = HexGrid.Cells;
+            int estimatedVertices = _cells.Length * HexMetrics.EstimatedVerticesPerCell;
+            int estimatedTriangles = _cells.Length * HexMetrics.EstimatedTrianglesPerCell;
+            
+            _vertices = new NativeList<Vector3>(estimatedVertices, Allocator.Persistent);
+            _triangles = new NativeList<int>(estimatedTriangles, Allocator.Persistent);
+            _colors = new NativeList<Color>(estimatedVertices, Allocator.Persistent);
+            _meshGridData = new HexMeshGridData(_vertices, _triangles, _colors, HexMetrics.NoiseData);
+        }
+        
+        private void ClearMeshData()
+        {
+            if (_vertices.IsCreated) _vertices.Clear();
+            if (_triangles.IsCreated) _triangles.Clear();
+            if (_colors.IsCreated) _colors.Clear();
         }
 
         public void TriangulateChunk(ChunkData chunkData)
         {
-            _hexMesh.Clear();
-            
-            NativeArray<HexCellData> cells = HexGrid.Cells;
-            
-            int estimatedVertices = cells.Length * HexMetrics.EstimatedVerticesPerCell;
-            int estimatedTriangles = cells.Length * HexMetrics.EstimatedTrianglesPerCell;
-
-            _vertices = new NativeList<Vector3>(estimatedVertices,Allocator.Persistent);
-            _triangles = new NativeList<int>(estimatedTriangles,Allocator.Persistent);
-            _colors = new NativeList<Color>(estimatedVertices,Allocator.Persistent);
-            _meshGridData = new HexMeshGridData(_vertices, _triangles, _colors, HexMetrics.NoiseData);
+            _cells = HexGrid.Cells;
+            ClearMeshData();
             
             GenerateCenterHexMeshJob generateCenterHexMeshJob = new GenerateCenterHexMeshJob 
             {
-                Cells = cells,
+                Cells = _cells,
                 ChunkData = chunkData,
                 MeshGridData = _meshGridData,
             };
+            generateCenterHexMeshJob.Schedule(chunkData.CellsIndex.Length, 64).Complete();
+
+            UpdateMesh();
+        }
+        
+        private void UpdateMesh()
+        {
+            _hexMesh.Clear();
             
-            JobHandle generateCenterHexMeshDataHandle = generateCenterHexMeshJob.Schedule(chunkData.CellsIndex.Length, 64);
-            generateCenterHexMeshDataHandle.Complete();
-            
-            //TODO: utilizar nueva API MeshData para asignar vertices.
             _hexMesh.SetVertices(_vertices.AsArray());
-            _hexMesh.SetTriangles(_triangles.AsArray().ToArray(), 0);
+
+            NativeArray<int> trianglesArray = _triangles.AsArray();
+            _hexMesh.SetIndexBufferParams(trianglesArray.Length, UnityEngine.Rendering.IndexFormat.UInt32);
+            _hexMesh.SetIndexBufferData(trianglesArray, 0, 0, trianglesArray.Length);
+
+            _hexMesh.SetSubMesh(0, new UnityEngine.Rendering.SubMeshDescriptor(0, trianglesArray.Length),
+                UnityEngine.Rendering.MeshUpdateFlags.DontRecalculateBounds);
+
             _hexMesh.SetColors(_colors.AsArray());
             _hexMesh.RecalculateNormals();
-            
+
             _meshCollider.sharedMesh = _hexMesh;
-            
-            Dispose();
         }
 
         [BurstCompile]
@@ -269,12 +292,17 @@ namespace MapGenerationProject.DOTS
                 return position;
             }
         }
-
+        
         public void Dispose()
         {
-            _vertices.Dispose();
-            _triangles.Dispose();
-            _colors.Dispose();
+            if (_vertices.IsCreated) _vertices.Dispose();
+            if (_triangles.IsCreated) _triangles.Dispose();
+            if (_colors.IsCreated) _colors.Dispose();
+        }
+
+        private void OnDestroy()
+        {
+            Dispose();
         }
     }
 }
