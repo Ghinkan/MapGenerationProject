@@ -4,13 +4,14 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Rendering;
 namespace MapGenerationProject.DOTS
 {
     public class HexMesh : MonoBehaviour, IDisposable
     {
         [SerializeField] private MeshFilter _meshFilter;
         [SerializeField] private MeshCollider _meshCollider;
-        
+
         private Mesh _hexMesh;
         private NativeArray<HexCellData> _cells;
         private HexMeshGridData _meshGridData;
@@ -18,27 +19,28 @@ namespace MapGenerationProject.DOTS
         private NativeList<int> _triangles;
         private NativeList<Color> _colors;
         private bool _isInitialized;
-        
+
         private void Awake()
         {
-            _hexMesh = new Mesh { name = "Hex Mesh"};
+            _hexMesh = new Mesh { name = "Hex Mesh" };
+            _hexMesh.MarkDynamic();
             _meshFilter.mesh = _hexMesh;
 
             InitializeMeshData();
         }
-        
+
         private void InitializeMeshData()
         {
             _cells = HexGrid.Cells;
             int estimatedVertices = _cells.Length * HexMetrics.EstimatedVerticesPerCell;
             int estimatedTriangles = _cells.Length * HexMetrics.EstimatedTrianglesPerCell;
-            
+
             _vertices = new NativeList<Vector3>(estimatedVertices, Allocator.Persistent);
             _triangles = new NativeList<int>(estimatedTriangles, Allocator.Persistent);
             _colors = new NativeList<Color>(estimatedVertices, Allocator.Persistent);
             _meshGridData = new HexMeshGridData(_vertices, _triangles, _colors, HexMetrics.NoiseData);
         }
-        
+
         private void ClearMeshData()
         {
             if (_vertices.IsCreated) _vertices.Clear();
@@ -50,16 +52,55 @@ namespace MapGenerationProject.DOTS
         {
             _cells = HexGrid.Cells;
             ClearMeshData();
-            
-            GenerateCenterHexMeshJob generateCenterHexMeshJob = new GenerateCenterHexMeshJob 
-            {
+
+            GenerateCenterHexMeshJob generateCenterHexMeshJob = new GenerateCenterHexMeshJob {
                 Cells = _cells,
                 ChunkData = chunkData,
                 MeshGridData = _meshGridData,
             };
             generateCenterHexMeshJob.Schedule(chunkData.CellsIndex.Length, 64).Complete();
 
-            UpdateMesh();
+            // UpdateMesh();
+            UpdateMeshData();
+        }
+
+        private void UpdateMeshData()
+        {
+            int vertexCount = _vertices.Length;
+            int indexCount = _triangles.Length;
+
+            // Crear contenedor de malla
+            Mesh.MeshDataArray meshDataArray = Mesh.AllocateWritableMeshData(1);
+            Mesh.MeshData meshData = meshDataArray[0];
+
+            // Establecer los atributos de vértice (posición y color). Usamos 2 streams separados para evitar problemas de stride
+            NativeArray<VertexAttributeDescriptor> vertexAttributes = new NativeArray<VertexAttributeDescriptor>(2, Allocator.Temp);
+            vertexAttributes[0] = new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3, stream: 0);
+            vertexAttributes[1] = new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.Float32, 4, stream: 1);
+
+            // Configurar buffers de vértices
+            meshData.SetVertexBufferParams(vertexCount, vertexAttributes);
+
+            // Copiar datos a los streams correctos
+            meshData.GetVertexData<Vector3>(0).CopyFrom(_vertices.AsArray()); // stream 0: posición
+            meshData.GetVertexData<Color>(1).CopyFrom(_colors.AsArray()); // stream 1: color
+
+            // Configurar índice
+            meshData.SetIndexBufferParams(indexCount, IndexFormat.UInt32);
+            meshData.GetIndexData<int>().CopyFrom(_triangles.AsArray());
+
+            // Configurar submesh
+            meshData.subMeshCount = 1;
+            SubMeshDescriptor subMeshDescriptor = new SubMeshDescriptor(0, indexCount) 
+            {
+                topology = MeshTopology.Triangles,
+            };
+            meshData.SetSubMesh(0, subMeshDescriptor);
+
+            // Aplicar y reemplazar el mesh
+            Mesh.ApplyAndDisposeWritableMeshData(meshDataArray, _hexMesh, MeshUpdateFlags.DontRecalculateBounds);
+            _hexMesh.RecalculateNormals();
+            _meshCollider.sharedMesh = _hexMesh;
         }
         
         private void UpdateMesh()
