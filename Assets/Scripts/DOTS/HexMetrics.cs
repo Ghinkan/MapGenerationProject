@@ -32,6 +32,19 @@ namespace MapGenerationProject.DOTS
 
         private const float SolidFactor = 0.75f;
         private const float BlendFactor = 1f - SolidFactor;
+        
+        // Constants for mesh estimation
+        private const int VerticesPerTriangle = 3;
+        private const int TrianglesPerHexSide = 3; // 1 fan triangle per corner vertex (3 vertices per side)
+        private const int TrianglesPerTerraceStrip = 2 * (TerraceSteps - 1); // 2 triangles per terrace step
+        private const int TrianglesPerConnection = TrianglesPerTerraceStrip + 2; // +2 for the end caps
+        private const int MaxConnectionsPerCell = 6; // Hexagons have 6 sides
+
+        // Estimated vertices and triangles per cell
+        public const int EstimatedVerticesPerCell = (TrianglesPerHexSide * VerticesPerTriangle) + // Center fan
+            (MaxConnectionsPerCell * TrianglesPerConnection * VerticesPerTriangle); // Connections
+        public const int EstimatedTrianglesPerCell = TrianglesPerHexSide + // Center fan
+            (MaxConnectionsPerCell * TrianglesPerConnection); // Connections
 
         public static TextureData NoiseData; //TODO: Comprobar si puedo hacerlo readonly y settear todas las variables en un scriptable object
         public const float NoiseScale = 0.003f;

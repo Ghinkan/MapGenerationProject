@@ -1,24 +1,26 @@
-﻿using Unity.Burst;
+﻿using System;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 namespace MapGenerationProject.DOTS
 {
-    public class HexMesh : MonoBehaviour
+    public class HexMesh : MonoBehaviour, IDisposable
     {
+        [SerializeField] private MeshFilter _meshFilter;
+        [SerializeField] private MeshCollider _meshCollider;
+        
         private Mesh _hexMesh;
-        private MeshCollider _meshCollider;
         private HexMeshGridData _meshGridData;
         private NativeList<Vector3> _vertices;
         private NativeList<int> _triangles;
         private NativeList<Color> _colors;
-
+        
         private void Awake()
         {
-            GetComponent<MeshFilter>().mesh = _hexMesh = new Mesh();
-            _meshCollider = GetComponent<MeshCollider>();
-            _hexMesh.name = "Hex Mesh";
+            _hexMesh = new Mesh { name = "Hex Mesh"};
+            _meshFilter.mesh = _hexMesh;
         }
 
         public void TriangulateChunk(ChunkData chunkData)
@@ -27,13 +29,12 @@ namespace MapGenerationProject.DOTS
             
             NativeArray<HexCellData> cells = HexGrid.Cells;
             
-            int estimatedVertices = cells.Length * 200;
-            int estimatedTriangles = cells.Length * 250;
-            int estimatedColors = estimatedVertices;
-            
+            int estimatedVertices = cells.Length * HexMetrics.EstimatedVerticesPerCell;
+            int estimatedTriangles = cells.Length * HexMetrics.EstimatedTrianglesPerCell;
+
             _vertices = new NativeList<Vector3>(estimatedVertices,Allocator.Persistent);
             _triangles = new NativeList<int>(estimatedTriangles,Allocator.Persistent);
-            _colors = new NativeList<Color>(estimatedColors,Allocator.Persistent);
+            _colors = new NativeList<Color>(estimatedVertices,Allocator.Persistent);
             _meshGridData = new HexMeshGridData(_vertices, _triangles, _colors, HexMetrics.NoiseData);
             
             GenerateCenterHexMeshJob generateCenterHexMeshJob = new GenerateCenterHexMeshJob 
@@ -53,15 +54,8 @@ namespace MapGenerationProject.DOTS
             _hexMesh.RecalculateNormals();
             
             _meshCollider.sharedMesh = _hexMesh;
-
-            DisposeBuffers();
-        }
-
-        private void DisposeBuffers()
-        {
-            _vertices.Dispose();
-            _triangles.Dispose();
-            _colors.Dispose();
+            
+            Dispose();
         }
 
         [BurstCompile]
@@ -274,6 +268,13 @@ namespace MapGenerationProject.DOTS
                 position.z += (sample.z * 2f - 1f) * HexMetrics.CellPerturbStrength;
                 return position;
             }
+        }
+
+        public void Dispose()
+        {
+            _vertices.Dispose();
+            _triangles.Dispose();
+            _colors.Dispose();
         }
     }
 }
