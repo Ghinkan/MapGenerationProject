@@ -46,6 +46,7 @@ namespace MapGenerationProject.DOTS
             }
         }
 
+        //TODO: Only call Chunks edited
         private void RefreshLabelPosition(int index)
         {
             for (int i = 0; i < _chunk.ChunkData.CellsIndex.Length; i++)

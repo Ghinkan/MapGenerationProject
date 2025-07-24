@@ -7,6 +7,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.EventChannels;
+using UnityEngine.InputSystem;
 namespace MapGenerationProject.DOTS
 {
     public class HexGrid : MonoBehaviour, IDisposable
@@ -39,8 +40,16 @@ namespace MapGenerationProject.DOTS
         {
             HexMetrics.NoiseData = _noiseData;
         }
-        
-        private void Start() 
+
+        private void Update()
+        {
+            if (Keyboard.current.pKey.wasPressedThisFrame)
+            {
+                Test();
+            }
+        }
+
+        private void Test() 
         {
             for (int i = 0; i < ChunkCount; i++)
             {

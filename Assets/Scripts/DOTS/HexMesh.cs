@@ -17,7 +17,11 @@ namespace MapGenerationProject.DOTS
         private NativeList<Vector3> _vertices;
         private NativeList<int> _triangles;
         private NativeList<Color> _colors;
-
+        
+        private JobHandle _currentJobHandle;
+        private NativeArray<HexCellData> _currentChunkCells;
+        private bool _isJobRunning;
+        
         private void Awake()
         {
             _hexMesh = new Mesh { name = "Hex Mesh" };
@@ -36,6 +40,7 @@ namespace MapGenerationProject.DOTS
             _triangles = new NativeList<int>(estimatedTriangles, Allocator.Persistent);
             _colors = new NativeList<Color>(estimatedVertices, Allocator.Persistent);
             _meshGridData = new HexMeshGridData(_vertices, _triangles, _colors, HexMetrics.NoiseData);
+            _currentChunkCells = new NativeArray<HexCellData>(HexGrid.Cells.Length, Allocator.Persistent);
         }
 
         private void ClearMeshData()
@@ -47,17 +52,42 @@ namespace MapGenerationProject.DOTS
 
         public void TriangulateChunk(ChunkData chunkData)
         {
+            if (_isJobRunning)
+            {
+                _currentJobHandle.Complete();
+                _isJobRunning = false;
+            }
+            
             ClearMeshData();
-
+            
+            _currentChunkCells.CopyFrom(HexGrid.Cells);
+            
             GenerateCenterHexMeshJob generateCenterHexMeshJob = new GenerateCenterHexMeshJob 
             {
-                Cells = HexGrid.Cells,
+                Cells = _currentChunkCells,
                 ChunkData = chunkData,
                 MeshGridData = _meshGridData,
             };
-            generateCenterHexMeshJob.Schedule(chunkData.CellsIndex.Length, 64).Complete();
             
-            UpdateMeshData();
+            _currentJobHandle = generateCenterHexMeshJob.Schedule();
+            _isJobRunning = true;
+        }
+        
+        private void TryCompleteJob()
+        {
+            if (!_isJobRunning) return;
+
+            if (_currentJobHandle.IsCompleted)
+            {
+                _currentJobHandle.Complete();
+                _isJobRunning = false;
+                UpdateMeshData();
+            }
+        }
+        
+        private void Update()
+        {
+            TryCompleteJob();
         }
 
         private void UpdateMeshData()
@@ -101,31 +131,63 @@ namespace MapGenerationProject.DOTS
             _meshCollider.sharedMesh = _hexMesh;
         }
         
+        // [BurstCompile]
+        // private struct GenerateCenterHexMeshJob : IJobParallelFor
+        // {
+        //     [ReadOnly] public NativeArray<HexCellData> Cells;
+        //     [ReadOnly] public ChunkData ChunkData;
+        //     public HexMeshGridData MeshGridData;
+        //     
+        //     public void Execute(int index)
+        //     {
+        //         index = ChunkData.CellsIndex[index];
+        //         
+        //         HexCellData cell = Cells[index];
+        //         Vector3 center = cell.Position;
+        //
+        //         for (HexDirection direction = HexDirection.NE; direction <= HexDirection.NW; direction++)
+        //         {
+        //             EdgeVertices e = new EdgeVertices(center + HexMetrics.GetFirstSolidCorner(direction), center + HexMetrics.GetSecondSolidCorner(direction));
+        //
+        //             // Edge fan triangulation
+        //             HexMeshTriangulationUtils.TriangulateEdgeFan(center, e, cell.Color, ref MeshGridData);
+        //
+        //             if (direction <= HexDirection.SE)
+        //             {
+        //                 // Connection handling
+        //                 HexEdgeUtils.CreateConnection(cell, direction, e, Cells, ref MeshGridData);
+        //             }
+        //         }
+        //     }
+        // }
+        
         [BurstCompile]
-        private struct GenerateCenterHexMeshJob : IJobParallelFor
+        private struct GenerateCenterHexMeshJob : IJob
         {
             [ReadOnly] public NativeArray<HexCellData> Cells;
             [ReadOnly] public ChunkData ChunkData;
             public HexMeshGridData MeshGridData;
-            
-            public void Execute(int index)
+
+            public void Execute()
             {
-                index = ChunkData.CellsIndex[index];
-                
-                HexCellData cell = Cells[index];
-                Vector3 center = cell.Position;
-
-                for (HexDirection direction = HexDirection.NE; direction <= HexDirection.NW; direction++)
+                for (int i = 0; i < ChunkData.CellsIndex.Length; i++)
                 {
-                    EdgeVertices e = new EdgeVertices(center + HexMetrics.GetFirstSolidCorner(direction), center + HexMetrics.GetSecondSolidCorner(direction));
+                    int index = ChunkData.CellsIndex[i];
+                    HexCellData cell = Cells[index];
+                    Vector3 center = cell.Position;
 
-                    // Edge fan triangulation
-                    HexMeshTriangulationUtils.TriangulateEdgeFan(center, e, cell.Color, ref MeshGridData);
-
-                    if (direction <= HexDirection.SE)
+                    for (HexDirection direction = HexDirection.NE; direction <= HexDirection.NW; direction++)
                     {
-                        // Connection handling
-                        HexEdgeUtils.CreateConnection(cell, direction, e, Cells, ref MeshGridData);
+                        EdgeVertices e = new EdgeVertices(
+                            center + HexMetrics.GetFirstSolidCorner(direction),
+                            center + HexMetrics.GetSecondSolidCorner(direction));
+
+                        HexMeshTriangulationUtils.TriangulateEdgeFan(center, e, cell.Color, ref MeshGridData);
+
+                        if (direction <= HexDirection.SE)
+                        {
+                            HexEdgeUtils.CreateConnection(cell, direction, e, Cells, ref MeshGridData);
+                        }
                     }
                 }
             }
@@ -136,6 +198,7 @@ namespace MapGenerationProject.DOTS
             if (_vertices.IsCreated) _vertices.Dispose();
             if (_triangles.IsCreated) _triangles.Dispose();
             if (_colors.IsCreated) _colors.Dispose();
+            if (_currentChunkCells.IsCreated) _currentChunkCells.Dispose();
         }
 
         private void OnDestroy()
