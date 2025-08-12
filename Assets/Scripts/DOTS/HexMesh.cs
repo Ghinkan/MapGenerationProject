@@ -2,7 +2,6 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 namespace MapGenerationProject.DOTS
@@ -33,12 +32,13 @@ namespace MapGenerationProject.DOTS
 
         private void InitializeMeshData()
         {
-            int estimatedVertices = HexGrid.Cells.Length * HexMetrics.EstimatedVerticesPerCell;
-            int estimatedTriangles = HexGrid.Cells.Length * HexMetrics.EstimatedTrianglesPerCell;
-
-            _vertices = new NativeList<Vector3>(estimatedVertices, Allocator.Persistent);
-            _triangles = new NativeList<int>(estimatedTriangles, Allocator.Persistent);
-            _colors = new NativeList<Color>(estimatedVertices, Allocator.Persistent);
+            int cellsPerChunk = HexMetrics.ChunkCellSizeX * HexMetrics.ChunkCellSizeZ;
+            int estimatedVerticesPerChunk = cellsPerChunk * HexMetrics.EstimatedVerticesPerCell;
+            int estimatedTrianglesPerChunk = cellsPerChunk * HexMetrics.EstimatedTrianglesPerCell;
+            
+            _vertices = new NativeList<Vector3>(estimatedVerticesPerChunk * 3, Allocator.Persistent);
+            _triangles = new NativeList<int>(estimatedTrianglesPerChunk * 3, Allocator.Persistent);
+            _colors = new NativeList<Color>(estimatedVerticesPerChunk * 3, Allocator.Persistent);
             _meshGridData = new HexMeshGridData(_vertices, _triangles, _colors, HexMetrics.NoiseData);
             _currentChunkCells = new NativeArray<HexCellData>(HexGrid.Cells.Length, Allocator.Persistent);
         }
@@ -81,6 +81,7 @@ namespace MapGenerationProject.DOTS
             {
                 _currentJobHandle.Complete();
                 _isJobRunning = false;
+                
                 UpdateMeshData();
             }
         }
@@ -130,36 +131,6 @@ namespace MapGenerationProject.DOTS
             
             _meshCollider.sharedMesh = _hexMesh;
         }
-        
-        // [BurstCompile]
-        // private struct GenerateCenterHexMeshJob : IJobParallelFor
-        // {
-        //     [ReadOnly] public NativeArray<HexCellData> Cells;
-        //     [ReadOnly] public ChunkData ChunkData;
-        //     public HexMeshGridData MeshGridData;
-        //     
-        //     public void Execute(int index)
-        //     {
-        //         index = ChunkData.CellsIndex[index];
-        //         
-        //         HexCellData cell = Cells[index];
-        //         Vector3 center = cell.Position;
-        //
-        //         for (HexDirection direction = HexDirection.NE; direction <= HexDirection.NW; direction++)
-        //         {
-        //             EdgeVertices e = new EdgeVertices(center + HexMetrics.GetFirstSolidCorner(direction), center + HexMetrics.GetSecondSolidCorner(direction));
-        //
-        //             // Edge fan triangulation
-        //             HexMeshTriangulationUtils.TriangulateEdgeFan(center, e, cell.Color, ref MeshGridData);
-        //
-        //             if (direction <= HexDirection.SE)
-        //             {
-        //                 // Connection handling
-        //                 HexEdgeUtils.CreateConnection(cell, direction, e, Cells, ref MeshGridData);
-        //             }
-        //         }
-        //     }
-        // }
         
         [BurstCompile]
         private struct GenerateCenterHexMeshJob : IJob
