@@ -17,8 +17,8 @@ namespace MapGenerationProject.DOTS
             new Vector3(0f, 0f, OuterRadius),
         };
 
-        public const int ChunkCellSizeX = 8;
-        public const int ChunkCellSizeZ = 8;
+        public const int ChunkCellSizeX = 10;
+        public const int ChunkCellSizeZ = 10;
         public const int ChunkCountX = 5;
         public const int ChunkCountZ = 5;
         public const int Width = ChunkCellSizeX * ChunkCountX;

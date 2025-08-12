@@ -36,6 +36,7 @@ namespace MapGenerationProject.DOTS
             int estimatedVerticesPerChunk = cellsPerChunk * HexMetrics.EstimatedVerticesPerCell;
             int estimatedTrianglesPerChunk = cellsPerChunk * HexMetrics.EstimatedTrianglesPerCell;
             
+            // TODO: Check if this is a good way to estimate the size
             _vertices = new NativeList<Vector3>(estimatedVerticesPerChunk * 3, Allocator.Persistent);
             _triangles = new NativeList<int>(estimatedTrianglesPerChunk * 3, Allocator.Persistent);
             _colors = new NativeList<Color>(estimatedVerticesPerChunk * 3, Allocator.Persistent);
